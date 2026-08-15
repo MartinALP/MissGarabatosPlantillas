@@ -3,13 +3,30 @@ import HubHome from './HubHome'
 import App from './App'
 import PlaneacionApp from './PlaneacionApp'
 import EvidenciasPage from './EvidenciasPage'
+import mascot from './assets/miss-garabatos.png'
 import { mgHealth, mgGetAll, MG_KEYS, migrateLocalStorageToDb } from './api/missGarabatosApi'
 import { hydrateCatalogFromApi } from './data/catalogoFase2'
 import { hydrateNivelesFromApi } from './data/nivelesStore'
 
+function BootSplash() {
+  return (
+    <div className="boot-splash" role="status" aria-live="polite">
+      <div className="boot-logo-wrap">
+        <span className="boot-ring" aria-hidden />
+        <img className="boot-logo" src={mascot} alt="" />
+      </div>
+      <p className="boot-title">Miss Garabatos</p>
+      <p className="boot-msg">Preparando el salón…</p>
+      <span className="boot-dots" aria-hidden>
+        <i /><i /><i />
+      </span>
+    </div>
+  )
+}
+
 export default function Root() {
   const [mode, setMode] = useState('home')
-  const [boot, setBoot] = useState({ ready: false, apiOk: false, message: 'Conectando con la API…', evidencias: null })
+  const [boot, setBoot] = useState({ ready: false, apiOk: false, evidencias: null })
 
   useEffect(() => {
     let cancelled = false
@@ -29,7 +46,6 @@ export default function Root() {
         setBoot({
           ready: true,
           apiOk: true,
-          message: '',
           evidencias: cfg[MG_KEYS.evidencias] || null,
         })
       } catch (err) {
@@ -49,7 +65,6 @@ export default function Root() {
         setBoot({
           ready: true,
           apiOk: false,
-          message: 'No se pudo hablar con la API (¿está corriendo en :8080?). Se usa lo de este navegador.',
           evidencias,
         })
       }
@@ -57,13 +72,7 @@ export default function Root() {
     return () => { cancelled = true }
   }, [])
 
-  if (!boot.ready) {
-    return (
-      <div className="app" style={{ padding: '2rem', textAlign: 'center' }}>
-        <p>{boot.message}</p>
-      </div>
-    )
-  }
+  if (!boot.ready) return <BootSplash />
 
   const page =
     mode === 'home' ? (
@@ -88,7 +97,7 @@ export default function Root() {
         color: '#1c2833',
         textAlign: 'center',
       }}>
-        {boot.message}
+        No pude conectar con el servidor. Puedes seguir; los cambios se quedan en este navegador.
       </p>
       {page}
     </>

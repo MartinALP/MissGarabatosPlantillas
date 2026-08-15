@@ -1906,3 +1906,101 @@ textarea {
   border-radius: 14px;
   background: #fff;
 }
+
+.boot-splash {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  padding: 2rem 1.25rem;
+}
+
+.boot-logo-wrap {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.boot-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 7px solid #fce4ec;
+  border-top-color: #ff6b9d;
+  border-right-color: #ffd166;
+  animation: boot-spin 0.95s linear infinite;
+}
+
+.boot-logo {
+  width: 128px;
+  height: auto;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  animation: boot-float 1.7s ease-in-out infinite;
+}
+
+.boot-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: #c44569;
+}
+
+.boot-msg {
+  margin: 0;
+  font-weight: 800;
+  color: var(--grape);
+  font-size: 1.05rem;
+}
+
+.boot-dots {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.boot-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff6b9d;
+  animation: boot-dot 0.9s ease-in-out infinite;
+}
+
+.boot-dots i:nth-child(2) {
+  background: #ffd166;
+  animation-delay: 0.15s;
+}
+
+.boot-dots i:nth-child(3) {
+  background: #4cc9f0;
+  animation-delay: 0.3s;
+}
+
+@keyframes boot-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes boot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes boot-dot {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.45; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-ring,
+  .boot-logo,
+  .boot-dots i {
+    animation: none;
+  }
+}
