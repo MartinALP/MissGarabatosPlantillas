@@ -9,6 +9,7 @@ import { proponerIndicadores } from './data/indicadoresCotejo'
 import { StepCampos, StepContenidos, StepPdas, scrollToTop } from './App'
 import { saveAs } from 'file-saver'
 import { mgPut, MG_KEYS } from './api/missGarabatosApi'
+import { listPlantillasEvidencias, savePlantillaEvidencia } from './data/plantillasEvidenciasStore'
 import mascot from './assets/miss-garabatos.png'
 import './App.css'
 
@@ -37,7 +38,17 @@ function pdaPreview(slide) {
 }
 
 function emptyDraft(tipo = null) {
-  return { tipo, selectedCampos: [], selectedContenidos: {}, selectedPdas: {}, pptAdjunto: null, indicadoresSel: [], cotejoVacio: false }
+  return {
+    tipo,
+    selectedCampos: [],
+    selectedContenidos: {},
+    selectedPdas: {},
+    pptAdjunto: null,
+    pptVacio: false,
+    adjuntoModo: null,
+    indicadoresSel: [],
+    cotejoVacio: false,
+  }
 }
 
 function slidesFromDraft(draft) {
@@ -50,8 +61,9 @@ function slidesFromDraft(draft) {
     campoId,
     contenidoId,
     pdaIds,
-    pptName: draft.tipo === 'grafica' ? draft.pptAdjunto?.name : undefined,
-    pptBlob: draft.tipo === 'grafica' ? draft.pptAdjunto?.blob : undefined,
+    pptName: draft.tipo === 'grafica' && !draft.pptVacio ? draft.pptAdjunto?.name : undefined,
+    pptBlob: draft.tipo === 'grafica' && !draft.pptVacio ? draft.pptAdjunto?.blob : undefined,
+    pptVacio: draft.tipo === 'grafica' ? Boolean(draft.pptVacio) : false,
     indicadores: draft.tipo === 'cotejo' && !draft.cotejoVacio ? (draft.indicadoresSel || []) : [],
     cotejoVacio: draft.tipo === 'cotejo' ? Boolean(draft.cotejoVacio) : false,
   }]
@@ -65,6 +77,8 @@ function slideToDraft(slide) {
     selectedContenidos: { [slide.campoId]: [slide.contenidoId] },
     selectedPdas: { [`${slide.campoId}::${slide.contenidoId}`]: [...slide.pdaIds] },
     pptAdjunto: slide.pptBlob ? { name: slide.pptName, blob: slide.pptBlob } : null,
+    pptVacio: Boolean(slide.pptVacio),
+    adjuntoModo: slide.pptVacio ? 'vacio' : slide.pptBlob ? 'subir' : null,
     indicadoresSel: slide.indicadores || [],
     cotejoVacio: Boolean(slide.cotejoVacio) || (slide.tipo === 'cotejo' && !(slide.indicadores || []).length),
   }
@@ -79,9 +93,10 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   const [toast, setToast] = useState('')
   const [extraIndicador, setExtraIndicador] = useState('')
   const [hydrated, setHydrated] = useState(!savedState)
+  const [plantillas, setPlantillas] = useState([])
   const catalog = getActiveCampos()
   const slideNum = slides.length + 1
-  const { tipo, selectedCampos, selectedContenidos, selectedPdas, pptAdjunto, indicadoresSel = [], cotejoVacio = false } = draft
+  const { tipo, selectedCampos, selectedContenidos, selectedPdas, pptAdjunto, pptVacio, adjuntoModo, indicadoresSel = [], cotejoVacio = false } = draft
 
   useEffect(() => {
     const saved = savedState
@@ -96,6 +111,12 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
     if (typeof saved.gradoFiltro === 'number') setGradoFiltro(saved.gradoFiltro)
     setHydrated(true)
   }, [savedState])
+
+  useEffect(() => {
+    listPlantillasEvidencias()
+      .then(setPlantillas)
+      .catch((err) => console.error('No se pudieron leer plantillas propias', err))
+  }, [])
 
   useEffect(() => {
     if (!hydrated) return
@@ -115,6 +136,21 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   useEffect(() => {
     scrollToTop()
   }, [step])
+
+  const gruposPlantillas = useMemo(() => {
+    const map = new Map()
+    for (const p of plantillas) {
+      const key = p.campoId || 'otros'
+      if (!map.has(key)) {
+        map.set(key, {
+          nombre: p.campoNombre || getCampo(p.campoId)?.nombre || 'Otros',
+          items: [],
+        })
+      }
+      map.get(key).items.push(p)
+    }
+    return [...map.values()]
+  }, [plantillas])
 
   const propuestasCotejo = useMemo(() => {
     if (tipo !== 'cotejo') return []
@@ -196,7 +232,7 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
     if (step === 3) return pdaCount >= 1
     if (step === 4) {
       if (tipo === 'cotejo') return cotejoVacio || indicadoresSel.length >= 1
-      return Boolean(pptAdjunto?.blob)
+      return Boolean(pptAdjunto?.blob) || Boolean(pptVacio)
     }
     return slides.length >= 1
   }
@@ -222,8 +258,8 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
         flash('Falta completar campo, contenido y PDA.')
         return
       }
-      if (tipo === 'grafica' && !nuevos[0].pptBlob) {
-        flash('Sube el PowerPoint tal cual lo quieres.')
+      if (tipo === 'grafica' && !nuevos[0].pptBlob && !draft.pptVacio) {
+        flash('Sube, selecciona o elige Vacío.')
         return
       }
       if (tipo === 'cotejo' && !draft.cotejoVacio && !(nuevos[0].indicadores || []).length) {
@@ -265,12 +301,45 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
       flash('Sube un archivo PowerPoint (.pptx).')
       return
     }
-    setDraft((prev) => ({ ...prev, pptAdjunto: { name: file.name, blob: file } }))
+    setDraft((prev) => ({ ...prev, pptAdjunto: { name: file.name, blob: file }, pptVacio: false, adjuntoModo: 'subir' }))
     flash('PowerPoint listo. Se descargará tal cual.')
+    const campoId = selectedCampos[0]
+    if (campoId) {
+      savePlantillaEvidencia({
+        campoId,
+        campoNombre: getCampo(campoId)?.nombre,
+        name: file.name,
+        blob: file,
+      })
+        .then((rec) => setPlantillas((prev) => [rec, ...prev.filter((p) => p.id !== rec.id)]))
+        .catch((err) => console.error(err))
+    }
   }
 
   function quitarPpt() {
-    setDraft((prev) => ({ ...prev, pptAdjunto: null }))
+    setDraft((prev) => ({ ...prev, pptAdjunto: null, pptVacio: false }))
+  }
+
+  function elegirPlantilla(rec) {
+    setDraft((prev) => ({
+      ...prev,
+      pptAdjunto: { name: rec.name, blob: rec.blob },
+      pptVacio: false,
+      adjuntoModo: 'seleccionar',
+    }))
+    flash(`Seleccionaste ${rec.name}.`)
+  }
+
+  function irVacioYDescargar() {
+    const next = { ...draft, pptAdjunto: null, pptVacio: true, adjuntoModo: 'vacio' }
+    const nuevos = slidesFromDraft(next)
+    if (!nuevos.length) {
+      flash('Falta completar campo, contenido y PDA.')
+      return
+    }
+    setDraft(next)
+    setSlides((prev) => [...prev, ...nuevos])
+    setStep(5)
   }
 
   function toggleVacio() {
@@ -449,24 +518,87 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
         )}
         {step === 4 && (
           <section>
-            <h2>5. Diapositiva {slideNum} · {tipo === 'cotejo' ? 'Indicadores de cotejo' : 'Sube tu PowerPoint'}</h2>
+            <h2>5. Diapositiva {slideNum} · {tipo === 'cotejo' ? 'Indicadores de cotejo' : 'Tu plantilla'}</h2>
             {tipo === 'grafica' ? (
               <>
                 <p className="help">
-                  Sube el archivo <strong>.pptx</strong> que ya hiciste. No se recorta ni se mete en otra plantilla:
-                  al descargar te lo devolvemos <strong>tal cual</strong>.
+                  <strong>Subir</strong> un documento nuevo, <strong>Seleccionar</strong> uno que ya hayas subido (por campo)
+                  o <strong>Vacío</strong> para ir directo a Descargar con la hoja en blanco.
                 </p>
-                <div className="adjuntos-actions">
-                  <label className="btn primary file-btn">
-                    📽️ Subir PowerPoint
-                    <input type="file" accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation" hidden onChange={onPickPpt} />
+                <div className="adjunto-modo-grid">
+                  <label className={`hub-card evidencias ${adjuntoModo === 'subir' ? 'selected' : ''}`}>
+                    <div className="hub-card-head">
+                      <h2>Subir</h2>
+                      <span className={`check ${adjuntoModo === 'subir' ? 'on' : ''}`}>{adjuntoModo === 'subir' ? '✓' : ''}</span>
+                    </div>
+                    <p>Coloca un PowerPoint o documento nuevo.</p>
+                    <input
+                      type="file"
+                      accept=".pptx,.ppt,.pdf,.doc,.docx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                      hidden
+                      onChange={(e) => {
+                        setDraft((prev) => ({ ...prev, adjuntoModo: 'subir', pptVacio: false }))
+                        onPickPpt(e)
+                      }}
+                    />
                   </label>
+                  <button
+                    type="button"
+                    className={`hub-card evidencias ${adjuntoModo === 'seleccionar' ? 'selected' : ''}`}
+                    onClick={() => setDraft((prev) => ({ ...prev, adjuntoModo: 'seleccionar', pptVacio: false }))}
+                    aria-pressed={adjuntoModo === 'seleccionar'}
+                  >
+                    <div className="hub-card-head">
+                      <h2>Seleccionar</h2>
+                      <span className={`check ${adjuntoModo === 'seleccionar' ? 'on' : ''}`}>{adjuntoModo === 'seleccionar' ? '✓' : ''}</span>
+                    </div>
+                    <p>Elige un archivo que ya subiste, agrupado por campo.</p>
+                  </button>
+                  <button
+                    type="button"
+                    className={`hub-card evidencias ${adjuntoModo === 'vacio' ? 'selected' : ''}`}
+                    onClick={irVacioYDescargar}
+                    aria-pressed={adjuntoModo === 'vacio'}
+                  >
+                    <div className="hub-card-head">
+                      <h2>Vacío</h2>
+                      <span className={`check ${adjuntoModo === 'vacio' ? 'on' : ''}`}>{adjuntoModo === 'vacio' ? '✓' : ''}</span>
+                    </div>
+                    <p>Sin archivo: pasa a Descargar con la plantilla en blanco.</p>
+                  </button>
                 </div>
-                {pptAdjunto?.name && (
+                {adjuntoModo === 'subir' && pptAdjunto?.name && (
                   <p className="ppt-file-chip">
                     <strong>{pptAdjunto.name}</strong>
                     <button type="button" className="btn tiny ghost" onClick={quitarPpt}>Quitar</button>
                   </p>
+                )}
+                {adjuntoModo === 'seleccionar' && (
+                  <div className="plantillas-por-campo">
+                    {gruposPlantillas.length === 0 ? (
+                      <p className="empty">Aún no has subido plantillas. Usa Subir primero.</p>
+                    ) : (
+                      gruposPlantillas.map((g) => (
+                        <div key={g.nombre} className="plantilla-campo-block">
+                          <h3>{g.nombre}</h3>
+                          <ul className="plantilla-file-list">
+                            {g.items.map((rec) => (
+                              <li key={rec.id}>
+                                <button
+                                  type="button"
+                                  className={`plantilla-file-btn ${pptAdjunto?.name === rec.name ? 'selected' : ''}`}
+                                  onClick={() => elegirPlantilla(rec)}
+                                >
+                                  <span className={`check ${pptAdjunto?.name === rec.name ? 'on' : ''}`}>{pptAdjunto?.name === rec.name ? '✓' : ''}</span>
+                                  <span>{rec.name}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
               </>
             ) : (
@@ -551,6 +683,7 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
                       <p>
                         {TIPO[sl.tipo]?.label || 'Evidencia gráfica'} · {campo?.nombre} · {pdaPreview(sl)}
                         {sl.pptName ? ` · ${sl.pptName}` : ''}
+                        {sl.pptVacio ? ' · vacía' : ''}
                         {sl.tipo === 'cotejo' && sl.indicadores?.length ? ` · ${sl.indicadores.length} indicador(es)` : ''}
                       </p>
                     </div>
