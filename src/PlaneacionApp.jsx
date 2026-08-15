@@ -365,26 +365,34 @@ export default function PlaneacionApp({ onBack }) {
                   setPorDia(true)
                   setModalidadId('')
                 }}
+                aria-pressed={porDia}
               >
-                Por día
+                {porDia ? '✓ Por día' : 'Por día'}
               </button>
             </div>
             <div className="hub-grid metodo-grid">
-              {MODALIDADES.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className={`hub-card ${modalidadId === m.id ? 'selected' : ''}`}
-                  style={{ borderColor: m.color }}
-                  onClick={() => {
-                    setModalidadId(m.id)
-                    setPorDia(false)
-                  }}
-                >
-                  <h2 style={{ color: m.color }}>{m.nombre}</h2>
-                  <p>{m.resumen} {m.momentos.length} momentos.</p>
-                </button>
-              ))}
+              {MODALIDADES.map((m) => {
+                const on = modalidadId === m.id && !porDia
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={`hub-card ${on ? 'selected' : ''}`}
+                    style={{ '--campo': m.color, borderColor: on ? m.color : undefined }}
+                    onClick={() => {
+                      setModalidadId(m.id)
+                      setPorDia(false)
+                    }}
+                    aria-pressed={on}
+                  >
+                    <div className="hub-card-head">
+                      <h2 style={{ color: m.color }}>{m.nombre}</h2>
+                      <span className={`check ${on ? 'on' : ''}`}>{on ? '✓' : ''}</span>
+                    </div>
+                    <p>{m.resumen} {m.momentos.length} momentos.</p>
+                  </button>
+                )
+              })}
             </div>
             {porDia && (
               <p className="help">

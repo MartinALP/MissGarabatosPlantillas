@@ -1601,6 +1601,10 @@ textarea {
   min-height: 180px;
 }
 
+.tipo-pick-grid .hub-emoji {
+  margin: 0;
+}
+
 .hub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
@@ -1624,7 +1628,24 @@ textarea {
 }
 
 .hub-card.selected {
-  box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.25);
+  background: #f5eef8;
+  border-color: var(--campo, #8e44ad);
+  box-shadow: 0 8px 0 color-mix(in srgb, var(--campo, #8e44ad) 28%, white);
+}
+
+.hub-card .check {
+  margin-left: auto;
+  --campo: #8e44ad;
+}
+
+.hub-card.evidencias .check {
+  --campo: #7cb342;
+}
+
+.hub-card.evidencias.selected {
+  background: #f1f8e9;
+  border-color: #7cb342;
+  box-shadow: 0 8px 0 #dcedc8;
 }
 
 .hub-card.planeacion {

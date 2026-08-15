@@ -397,9 +397,13 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
                   type="button"
                   className={`hub-card evidencias ${tipo === t.id ? 'selected' : ''}`}
                   onClick={() => setDraft((prev) => ({ ...emptyDraft(t.id), tipo: t.id }))}
+                  aria-pressed={tipo === t.id}
                 >
-                  <span className="hub-emoji">{t.emoji}</span>
-                  <h2>{t.label}</h2>
+                  <div className="hub-card-head">
+                    <span className="hub-emoji">{t.emoji}</span>
+                    <h2>{t.label}</h2>
+                    <span className={`check ${tipo === t.id ? 'on' : ''}`}>{tipo === t.id ? '✓' : ''}</span>
+                  </div>
                   <p>
                     {t.id === 'grafica'
                       ? 'Sube tu PowerPoint y se descarga tal cual, sin cambiarlo.'
