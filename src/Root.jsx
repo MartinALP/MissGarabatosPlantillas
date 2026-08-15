@@ -15,7 +15,7 @@ export default function Root() {
     let cancelled = false
     ;(async () => {
       try {
-        const health = await mgHealth()
+        await mgHealth()
         let all = await mgGetAll()
         let cfg = all.configs || {}
         const migrated = await migrateLocalStorageToDb(cfg)
@@ -26,11 +26,10 @@ export default function Root() {
         hydrateCatalogFromApi(cfg[MG_KEYS.catalog])
         hydrateNivelesFromApi(cfg[MG_KEYS.niveles])
         if (cancelled) return
-        const extra = migrated.length ? ` · migrado de este navegador: ${migrated.join(', ')}` : ''
         setBoot({
           ready: true,
           apiOk: true,
-          message: `BD ${health.database} · ${health.teachers} maestra(s) · ${health.configs} config(s)${extra}`,
+          message: '',
           evidencias: cfg[MG_KEYS.evidencias] || null,
         })
       } catch (err) {
@@ -66,61 +65,32 @@ export default function Root() {
     )
   }
 
-  const banner = (
-    <p className="api-banner" style={{
-      margin: 0,
-      padding: '0.45rem 1rem',
-      fontSize: '0.85rem',
-      background: boot.apiOk ? '#d5f5e3' : '#fadbd8',
-      color: '#1c2833',
-      textAlign: 'center',
-    }}>
-      {boot.apiOk ? `Conectado a Postgres: ${boot.message}` : boot.message}
-    </p>
-  )
+  const page =
+    mode === 'home' ? (
+      <HubHome onSelect={setMode} />
+    ) : mode === 'planeacion' ? (
+      <PlaneacionApp onBack={() => setMode('home')} />
+    ) : mode === 'evidencias' ? (
+      <EvidenciasPage onBack={() => setMode('home')} savedState={boot.evidencias} />
+    ) : (
+      <App onBack={() => setMode('home')} />
+    )
 
-  async function recoverBrowser() {
-    try {
-      const all = await mgGetAll()
-      const migrated = await migrateLocalStorageToDb(all.configs || {}, { force: true })
-      window.alert(migrated.length
-        ? `Se subió a la BD: ${migrated.join(', ')}. Recarga lista.`
-        : 'Este navegador no tiene catálogo, niveles ni evidencias guardados. Prueba Microsoft Edge si ahí hiciste los ajustes.')
-      window.location.reload()
-    } catch (err) {
-      console.error(err)
-      window.alert('No se pudo subir lo del navegador. ¿La API está en :8080?')
-    }
-  }
+  if (boot.apiOk) return page
 
-  if (mode === 'home') {
-    return (
-      <>
-        {banner}
-        <HubHome onSelect={setMode} onRecoverBrowser={recoverBrowser} />
-      </>
-    )
-  }
-  if (mode === 'planeacion') {
-    return (
-      <>
-        {banner}
-        <PlaneacionApp onBack={() => setMode('home')} />
-      </>
-    )
-  }
-  if (mode === 'evidencias') {
-    return (
-      <>
-        {banner}
-        <EvidenciasPage onBack={() => setMode('home')} savedState={boot.evidencias} />
-      </>
-    )
-  }
   return (
     <>
-      {banner}
-      <App onBack={() => setMode('home')} />
+      <p className="api-banner" style={{
+        margin: 0,
+        padding: '0.45rem 1rem',
+        fontSize: '0.85rem',
+        background: '#fadbd8',
+        color: '#1c2833',
+        textAlign: 'center',
+      }}>
+        {boot.message}
+      </p>
+      {page}
     </>
   )
 }
