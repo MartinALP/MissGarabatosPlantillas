@@ -93,6 +93,7 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   const [toast, setToast] = useState('')
   const [extraIndicador, setExtraIndicador] = useState('')
   const [editandoIndicador, setEditandoIndicador] = useState(null)
+  const [editBorrador, setEditBorrador] = useState('')
   const [indicadoresTick, setIndicadoresTick] = useState(0)
   const [hydrated, setHydrated] = useState(!savedState)
   const [plantillas, setPlantillas] = useState([])
@@ -370,10 +371,6 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   function agregarIndicadorManual() {
     const t = extraIndicador.trim()
     if (!t) return
-    if (editandoIndicador) {
-      guardarEdicionIndicador()
-      return
-    }
     if (pdaIdsSeleccionados.length) {
       guardarIndicadorEnPdas(pdaIdsSeleccionados, t)
       setIndicadoresTick((n) => n + 1)
@@ -389,16 +386,16 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
 
   function empezarEditarIndicador(texto) {
     setEditandoIndicador(texto)
-    setExtraIndicador(texto)
+    setEditBorrador(texto)
   }
 
   function cancelarEdicionIndicador() {
     setEditandoIndicador(null)
-    setExtraIndicador('')
+    setEditBorrador('')
   }
 
   function guardarEdicionIndicador() {
-    const to = extraIndicador.trim()
+    const to = editBorrador.trim()
     const from = editandoIndicador
     if (!from || !to) return
     if (to === from) {
@@ -416,7 +413,7 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
       return { ...prev, cotejoVacio: false, indicadoresSel: [...new Set(next)] }
     })
     setEditandoIndicador(null)
-    setExtraIndicador('')
+    setEditBorrador('')
     flash('Indicador actualizado.')
   }
 
@@ -424,6 +421,7 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
     setDraft(emptyDraft())
     setExtraIndicador('')
     setEditandoIndicador(null)
+    setEditBorrador('')
     setGradoFiltro(0)
     setStep(0)
     flash(`Diapositiva ${slides.length + 1} lista. Ahora arma la siguiente.`)
@@ -454,6 +452,63 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  function renderIndicadorFila(t, on) {
+    const editing = editandoIndicador === t
+    return (
+      <div
+        key={t}
+        className={`indicador-card ${on ? 'selected' : ''} ${editing ? 'editing' : ''}`}
+      >
+        <button
+          type="button"
+          className={`check ${on ? 'on' : ''}`}
+          onClick={() => toggleIndicador(t)}
+          aria-pressed={on}
+          aria-label={on ? 'Quitar indicador' : 'Marcar indicador'}
+        >
+          {on ? '✓' : ''}
+        </button>
+        {editing ? (
+          <div className="indicador-edit-row">
+            <input
+              value={editBorrador}
+              onChange={(e) => setEditBorrador(e.target.value)}
+              aria-label="Editar indicador"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  guardarEdicionIndicador()
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault()
+                  cancelarEdicionIndicador()
+                }
+              }}
+            />
+            <button type="button" className="btn ghost" onClick={guardarEdicionIndicador}>
+              Guardar
+            </button>
+            <button type="button" className="btn ghost" onClick={cancelarEdicionIndicador}>
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <>
+            <span className="indicador-texto">{t}</span>
+            <button
+              type="button"
+              className="btn ghost indicador-edit"
+              onClick={() => empezarEditarIndicador(t)}
+            >
+              Editar
+            </button>
+          </>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -672,89 +727,24 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
                       <small> Filas en blanco para escribir directo en PowerPoint.</small>
                     </span>
                   </button>
-                  {propuestasCotejo.map((t) => {
-                    const on = indicadoresSel.includes(t)
-                    return (
-                      <div
-                        key={t}
-                        className={`indicador-card ${on ? 'selected' : ''} ${editandoIndicador === t ? 'editing' : ''}`}
-                      >
-                        <button
-                          type="button"
-                          className={`check ${on ? 'on' : ''}`}
-                          onClick={() => toggleIndicador(t)}
-                          aria-pressed={on}
-                          aria-label={on ? 'Quitar indicador' : 'Marcar indicador'}
-                        >
-                          {on ? '✓' : ''}
-                        </button>
-                        <button type="button" className="indicador-texto" onClick={() => toggleIndicador(t)}>
-                          {t}
-                        </button>
-                        <button
-                          type="button"
-                          className="indicador-edit"
-                          onClick={() => empezarEditarIndicador(t)}
-                        >
-                          Editar
-                        </button>
-                      </div>
-                    )
-                  })}
-                  {indicadoresSel.filter((t) => !propuestasCotejo.includes(t)).map((t) => (
-                    <div key={t} className={`indicador-card selected ${editandoIndicador === t ? 'editing' : ''}`}>
-                      <button
-                        type="button"
-                        className="check on"
-                        onClick={() => toggleIndicador(t)}
-                        aria-pressed
-                        aria-label="Quitar indicador"
-                      >
-                        ✓
-                      </button>
-                      <button type="button" className="indicador-texto" onClick={() => toggleIndicador(t)}>
-                        {t}
-                      </button>
-                      <button
-                        type="button"
-                        className="indicador-edit"
-                        onClick={() => empezarEditarIndicador(t)}
-                      >
-                        Editar
-                      </button>
-                    </div>
-                  ))}
+                  {propuestasCotejo.map((t) => renderIndicadorFila(t, indicadoresSel.includes(t)))}
+                  {indicadoresSel.filter((t) => !propuestasCotejo.includes(t)).map((t) => renderIndicadorFila(t, true))}
                 </div>
                 <div className="indicador-add">
                   <input
                     value={extraIndicador}
                     onChange={(e) => setExtraIndicador(e.target.value)}
-                    placeholder={editandoIndicador ? 'Corrige el indicador…' : 'Escribe un indicador propio…'}
+                    placeholder="Escribe un indicador propio…"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
                         agregarIndicadorManual()
                       }
-                      if (e.key === 'Escape' && editandoIndicador) {
-                        e.preventDefault()
-                        cancelarEdicionIndicador()
-                      }
                     }}
                   />
-                  {editandoIndicador ? (
-                    <>
-                      <button type="button" className="btn primary" onClick={guardarEdicionIndicador}>
-                        Guardar
-                      </button>
-                      <button type="button" className="btn ghost" onClick={cancelarEdicionIndicador}>
-                        Cancelar
-                      </button>
-                    </>
-                  ) : (
-                    <button type="button" className="btn ghost" onClick={agregarIndicadorManual}>
-                      Agregar
-                    </button>
-                  )}
+                  <button type="button" className="btn ghost" onClick={agregarIndicadorManual}>
+                    Agregar
+                  </button>
                 </div>
               </>
             )}
