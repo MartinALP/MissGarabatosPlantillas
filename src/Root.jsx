@@ -7,6 +7,7 @@ import mascot from './assets/miss-garabatos.png'
 import { mgHealth, mgGetAll, MG_KEYS, migrateLocalStorageToDb } from './api/missGarabatosApi'
 import { hydrateCatalogFromApi } from './data/catalogoFase2'
 import { hydrateNivelesFromApi } from './data/nivelesStore'
+import { hydrateIndicadoresFromApi } from './data/indicadoresCotejo'
 
 function BootSplash() {
   return (
@@ -42,6 +43,7 @@ export default function Root() {
         }
         hydrateCatalogFromApi(cfg[MG_KEYS.catalog])
         hydrateNivelesFromApi(cfg[MG_KEYS.niveles])
+        hydrateIndicadoresFromApi(cfg[MG_KEYS.indicadores])
         if (cancelled) return
         setBoot({
           ready: true,
@@ -55,6 +57,8 @@ export default function Root() {
           if (rawCat) hydrateCatalogFromApi(JSON.parse(rawCat))
           const rawNiv = localStorage.getItem('missgarabatos.nivelesDesempeno.v1')
           if (rawNiv) hydrateNivelesFromApi(JSON.parse(rawNiv))
+          const rawInd = localStorage.getItem('missgarabatos.indicadoresCotejo.v1')
+          if (rawInd) hydrateIndicadoresFromApi(JSON.parse(rawInd))
         } catch { /* ignore */ }
         if (cancelled) return
         let evidencias = null

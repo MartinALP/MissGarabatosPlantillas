@@ -5,7 +5,7 @@ import {
   getPda,
 } from './data/catalogoFase2'
 import { generateEvidenciasPptx } from './pptx/generateEvidenciasPptx'
-import { proponerIndicadores } from './data/indicadoresCotejo'
+import { editarIndicadorEnPdas, guardarIndicadorEnPdas, proponerIndicadores } from './data/indicadoresCotejo'
 import { StepCampos, StepContenidos, StepPdas, scrollToTop } from './App'
 import { saveAs } from 'file-saver'
 import { mgPut, MG_KEYS } from './api/missGarabatosApi'
@@ -92,6 +92,8 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
   const [extraIndicador, setExtraIndicador] = useState('')
+  const [editandoIndicador, setEditandoIndicador] = useState(null)
+  const [indicadoresTick, setIndicadoresTick] = useState(0)
   const [hydrated, setHydrated] = useState(!savedState)
   const [plantillas, setPlantillas] = useState([])
   const catalog = getActiveCampos()
@@ -152,10 +154,17 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
     return [...map.values()]
   }, [plantillas])
 
+  const pdaIdsSeleccionados = useMemo(() => {
+    const campoId = selectedCampos[0]
+    const contenidoId = (selectedContenidos[campoId] || [])[0]
+    if (!campoId || !contenidoId) return []
+    return selectedPdas[`${campoId}::${contenidoId}`] || []
+  }, [selectedCampos, selectedContenidos, selectedPdas])
+
   const propuestasCotejo = useMemo(() => {
     if (tipo !== 'cotejo') return []
-    return proponerIndicadores(selectedCampos[0])
-  }, [tipo, selectedCampos])
+    return proponerIndicadores(pdaIdsSeleccionados)
+  }, [tipo, pdaIdsSeleccionados, indicadoresTick])
 
   const pdaCount = useMemo(() => {
     const campoId = selectedCampos[0]
@@ -361,17 +370,60 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
   function agregarIndicadorManual() {
     const t = extraIndicador.trim()
     if (!t) return
+    if (editandoIndicador) {
+      guardarEdicionIndicador()
+      return
+    }
+    if (pdaIdsSeleccionados.length) {
+      guardarIndicadorEnPdas(pdaIdsSeleccionados, t)
+      setIndicadoresTick((n) => n + 1)
+    }
     setDraft((prev) => {
       const list = prev.indicadoresSel || []
       if (list.includes(t)) return prev
       return { ...prev, cotejoVacio: false, indicadoresSel: [...list, t] }
     })
     setExtraIndicador('')
+    flash(pdaIdsSeleccionados.length ? 'Indicador guardado para este PDA.' : 'Indicador agregado a esta hoja.')
+  }
+
+  function empezarEditarIndicador(texto) {
+    setEditandoIndicador(texto)
+    setExtraIndicador(texto)
+  }
+
+  function cancelarEdicionIndicador() {
+    setEditandoIndicador(null)
+    setExtraIndicador('')
+  }
+
+  function guardarEdicionIndicador() {
+    const to = extraIndicador.trim()
+    const from = editandoIndicador
+    if (!from || !to) return
+    if (to === from) {
+      cancelarEdicionIndicador()
+      return
+    }
+    if (pdaIdsSeleccionados.length) {
+      editarIndicadorEnPdas(pdaIdsSeleccionados, from, to)
+      setIndicadoresTick((n) => n + 1)
+    }
+    setDraft((prev) => {
+      const list = prev.indicadoresSel || []
+      const next = list.map((x) => (x === from ? to : x))
+      if (!next.includes(to)) next.push(to)
+      return { ...prev, cotejoVacio: false, indicadoresSel: [...new Set(next)] }
+    })
+    setEditandoIndicador(null)
+    setExtraIndicador('')
+    flash('Indicador actualizado.')
   }
 
   function handleAgregarDiapositiva() {
     setDraft(emptyDraft())
     setExtraIndicador('')
+    setEditandoIndicador(null)
     setGradoFiltro(0)
     setStep(0)
     flash(`Diapositiva ${slides.length + 1} lista. Ahora arma la siguiente.`)
@@ -604,7 +656,8 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
             ) : (
               <>
                 <p className="help">
-                  Elige <strong>Vacío</strong> para la lista en blanco (tú la llenas en PowerPoint), o marca solo los indicadores que quieras.
+                  Elige <strong>Vacío</strong> para la lista en blanco (tú la llenas en PowerPoint), o marca los indicadores de este PDA.
+                  Si escribes uno nuevo y pulsas Agregar, queda preestablecido para la próxima vez.
                 </p>
                 <div className="indicador-list">
                   <button
@@ -622,45 +675,86 @@ export default function EvidenciasPage({ onBack, savedState = null }) {
                   {propuestasCotejo.map((t) => {
                     const on = indicadoresSel.includes(t)
                     return (
-                      <button
+                      <div
                         key={t}
-                        type="button"
-                        className={`indicador-card ${on ? 'selected' : ''}`}
-                        onClick={() => toggleIndicador(t)}
-                        aria-pressed={on}
+                        className={`indicador-card ${on ? 'selected' : ''} ${editandoIndicador === t ? 'editing' : ''}`}
                       >
-                        <span className={`check ${on ? 'on' : ''}`}>{on ? '✓' : ''}</span>
-                        <span>{t}</span>
-                      </button>
+                        <button
+                          type="button"
+                          className={`check ${on ? 'on' : ''}`}
+                          onClick={() => toggleIndicador(t)}
+                          aria-pressed={on}
+                          aria-label={on ? 'Quitar indicador' : 'Marcar indicador'}
+                        >
+                          {on ? '✓' : ''}
+                        </button>
+                        <button type="button" className="indicador-texto" onClick={() => toggleIndicador(t)}>
+                          {t}
+                        </button>
+                        <button
+                          type="button"
+                          className="indicador-edit"
+                          onClick={() => empezarEditarIndicador(t)}
+                        >
+                          Editar
+                        </button>
+                      </div>
                     )
                   })}
                   {indicadoresSel.filter((t) => !propuestasCotejo.includes(t)).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className="indicador-card selected"
-                      onClick={() => toggleIndicador(t)}
-                    >
-                      <span className="check on">✓</span>
-                      <span>{t}</span>
-                    </button>
+                    <div key={t} className={`indicador-card selected ${editandoIndicador === t ? 'editing' : ''}`}>
+                      <button
+                        type="button"
+                        className="check on"
+                        onClick={() => toggleIndicador(t)}
+                        aria-pressed
+                        aria-label="Quitar indicador"
+                      >
+                        ✓
+                      </button>
+                      <button type="button" className="indicador-texto" onClick={() => toggleIndicador(t)}>
+                        {t}
+                      </button>
+                      <button
+                        type="button"
+                        className="indicador-edit"
+                        onClick={() => empezarEditarIndicador(t)}
+                      >
+                        Editar
+                      </button>
+                    </div>
                   ))}
                 </div>
                 <div className="indicador-add">
                   <input
                     value={extraIndicador}
                     onChange={(e) => setExtraIndicador(e.target.value)}
-                    placeholder="Escribe un indicador propio…"
+                    placeholder={editandoIndicador ? 'Corrige el indicador…' : 'Escribe un indicador propio…'}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
                         agregarIndicadorManual()
                       }
+                      if (e.key === 'Escape' && editandoIndicador) {
+                        e.preventDefault()
+                        cancelarEdicionIndicador()
+                      }
                     }}
                   />
-                  <button type="button" className="btn ghost" onClick={agregarIndicadorManual}>
-                    Agregar
-                  </button>
+                  {editandoIndicador ? (
+                    <>
+                      <button type="button" className="btn primary" onClick={guardarEdicionIndicador}>
+                        Guardar
+                      </button>
+                      <button type="button" className="btn ghost" onClick={cancelarEdicionIndicador}>
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className="btn ghost" onClick={agregarIndicadorManual}>
+                      Agregar
+                    </button>
+                  )}
                 </div>
               </>
             )}

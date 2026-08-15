@@ -5,6 +5,7 @@ const KEYS = {
   catalog: 'catalogoFase2',
   niveles: 'nivelesDesempeno',
   evidencias: 'evidencias_borrador',
+  indicadores: 'indicadoresCotejo',
 }
 
 function headers(json = false) {
@@ -48,6 +49,7 @@ const LS = {
   catalog: 'missgarabatos.catalogoFase2.v1',
   niveles: 'missgarabatos.nivelesDesempeno.v1',
   evidencias: 'mg_evidencias_borrador_v1',
+  indicadores: 'missgarabatos.indicadoresCotejo.v1',
 }
 
 function readLocal(key) {
@@ -75,6 +77,12 @@ function isEmptyConfig(key, value) {
     const hasDraft = Boolean(value.draft?.tipo)
     return !hasSlides && !hasDraft
   }
+  if (key === KEYS.indicadores) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return true
+    const extras = value.extras && typeof value.extras === 'object' ? value.extras : value
+    const ocultos = value.ocultos && typeof value.ocultos === 'object' ? value.ocultos : {}
+    return !Object.keys(extras || {}).length && !Object.keys(ocultos || {}).length
+  }
   return false
 }
 
@@ -85,6 +93,7 @@ export async function migrateLocalStorageToDb(existingConfigs = {}, { force = fa
     [KEYS.catalog, LS.catalog],
     [KEYS.niveles, LS.niveles],
     [KEYS.evidencias, LS.evidencias],
+    [KEYS.indicadores, LS.indicadores],
   ]
   for (const [apiKey, lsKey] of pairs) {
     const fromDb = existingConfigs[apiKey]
@@ -117,6 +126,24 @@ export async function migrateLocalStorageToDb(existingConfigs = {}, { force = fa
             })
           : [],
       }
+    } else if (apiKey === KEYS.indicadores) {
+      const asMaps = (v) => {
+        if (!v || typeof v !== 'object' || Array.isArray(v)) return { extras: {}, ocultos: {} }
+        if (v.extras || v.ocultos) {
+          return {
+            extras: v.extras && typeof v.extras === 'object' ? v.extras : {},
+            ocultos: v.ocultos && typeof v.ocultos === 'object' ? v.ocultos : {},
+          }
+        }
+        return { extras: v, ocultos: {} }
+      }
+      const dbMap = asMaps(fromDb)
+      const lsMap = asMaps(fromLs)
+      payload = {
+        extras: { ...dbMap.extras, ...lsMap.extras },
+        ocultos: { ...dbMap.ocultos, ...lsMap.ocultos },
+      }
+      if (!force && !isEmptyConfig(apiKey, fromDb) && Object.keys(lsMap.extras).length <= Object.keys(dbMap.extras).length) continue
     }
 
     await mgPut(apiKey, payload)
