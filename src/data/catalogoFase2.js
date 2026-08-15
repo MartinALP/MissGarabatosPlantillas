@@ -2658,10 +2658,23 @@ export function codigoPda(pda, campo) {
   return `${prefix}PDA${pda?.grado || '?'}`
 }
 
-/** Catálogo activo (oficial o el que el usuario ajustó en localStorage). */
-const CATALOG_STORAGE_KEY = 'missgarabatos.catalogoFase2.v1'
+/** Catálogo activo: memoria hidratada desde la API (base missgarabatos). */
+let catalogCache = null
+let catalogIsCustom = false
 
 export function getDefaultCampos() {
+  return CAMPOS
+}
+
+export function hydrateCatalogFromApi(campos) {
+  if (Array.isArray(campos) && campos.length) {
+    const { campos: clean } = purgeBorrarPdas(campos)
+    catalogCache = clean
+    catalogIsCustom = true
+    return clean
+  }
+  catalogCache = null
+  catalogIsCustom = false
   return CAMPOS
 }
 
@@ -2692,37 +2705,27 @@ export function purgeBorrarPdas(campos) {
 }
 
 export function getActiveCampos() {
-  if (typeof localStorage === 'undefined') return CAMPOS
-  try {
-    const raw = localStorage.getItem(CATALOG_STORAGE_KEY)
-    if (!raw) return CAMPOS
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed) && parsed.length) {
-      const { campos, removed } = purgeBorrarPdas(parsed)
-      // Persistir limpio para que no reaparezcan
-      if (removed > 0) {
-        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(campos))
-      }
-      return campos
-    }
-  } catch {
-    /* ignore */
-  }
+  if (catalogCache && Array.isArray(catalogCache) && catalogCache.length) return catalogCache
   return CAMPOS
 }
 
 export function saveActiveCampos(campos) {
-  if (typeof localStorage === 'undefined') return
   const { campos: clean } = purgeBorrarPdas(campos)
-  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(clean))
+  catalogCache = clean
+  catalogIsCustom = true
+  import('../api/missGarabatosApi.js').then(({ mgPut, MG_KEYS }) => mgPut(MG_KEYS.catalog, clean)).catch((err) => {
+    console.error('No se pudo guardar el catálogo en la BD', err)
+  })
 }
 
 export function resetActiveCampos() {
-  if (typeof localStorage === 'undefined') return
-  localStorage.removeItem(CATALOG_STORAGE_KEY)
+  catalogCache = null
+  catalogIsCustom = false
+  import('../api/missGarabatosApi.js').then(({ mgDelete, MG_KEYS }) => mgDelete(MG_KEYS.catalog)).catch((err) => {
+    console.error('No se pudo borrar el catálogo en la BD', err)
+  })
 }
 
 export function hasCustomCatalog() {
-  if (typeof localStorage === 'undefined') return false
-  return Boolean(localStorage.getItem(CATALOG_STORAGE_KEY))
+  return catalogIsCustom
 }

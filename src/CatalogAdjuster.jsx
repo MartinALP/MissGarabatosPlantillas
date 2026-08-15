@@ -10,7 +10,7 @@ import {
 
 /**
  * Panel para revisar y ajustar Campo → Contenido → PDA.
- * Guarda en localStorage y afecta la generación del Excel.
+ * Guarda en la base missgarabatos y afecta la generación del Excel.
  */
 export default function CatalogAdjuster({ catalog, onChange, onClose }) {
   const [campoId, setCampoId] = useState(catalog[0]?.id || '')

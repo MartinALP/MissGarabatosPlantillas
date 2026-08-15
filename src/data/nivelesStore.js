@@ -1,6 +1,6 @@
 /**
  * Niveles de desempeño (L / E / P / RA) editables + plantillas de texto.
- * Persistencia en localStorage; la generación del Excel usa la versión activa.
+ * Persistencia en la base missgarabatos vía API.
  */
 
 export const NIVELES_DEFAULT = [
@@ -65,7 +65,8 @@ export const EXT_DEFAULT = {
   ],
 }
 
-const STORAGE_KEY = 'missgarabatos.nivelesDesempeno.v1'
+let nivelesCache = null
+let nivelesIsCustom = false
 
 function clone(x) {
   return JSON.parse(JSON.stringify(x))
@@ -81,38 +82,51 @@ export function getDefaultNivelesConfig() {
   }
 }
 
-export function getActiveNivelesConfig() {
-  if (typeof localStorage === 'undefined') return getDefaultNivelesConfig()
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return getDefaultNivelesConfig()
-    const parsed = JSON.parse(raw)
-    const def = getDefaultNivelesConfig()
-    return {
-      niveles: Array.isArray(parsed.niveles) && parsed.niveles.length ? parsed.niveles : def.niveles,
-      aperturas: { ...def.aperturas, ...(parsed.aperturas || {}) },
-      cierres: { ...def.cierres, ...(parsed.cierres || {}) },
-      extensiones: { ...def.extensiones, ...(parsed.extensiones || {}) },
-      pdaAjustes: parsed.pdaAjustes && typeof parsed.pdaAjustes === 'object' ? parsed.pdaAjustes : {},
-    }
-  } catch {
-    return getDefaultNivelesConfig()
+function mergeNiveles(parsed) {
+  const def = getDefaultNivelesConfig()
+  if (!parsed || typeof parsed !== 'object') return def
+  return {
+    niveles: Array.isArray(parsed.niveles) && parsed.niveles.length ? parsed.niveles : def.niveles,
+    aperturas: { ...def.aperturas, ...(parsed.aperturas || {}) },
+    cierres: { ...def.cierres, ...(parsed.cierres || {}) },
+    extensiones: { ...def.extensiones, ...(parsed.extensiones || {}) },
+    pdaAjustes: parsed.pdaAjustes && typeof parsed.pdaAjustes === 'object' ? parsed.pdaAjustes : {},
   }
 }
 
+export function hydrateNivelesFromApi(payload) {
+  if (payload && typeof payload === 'object') {
+    nivelesCache = mergeNiveles(payload)
+    nivelesIsCustom = true
+    return nivelesCache
+  }
+  nivelesCache = null
+  nivelesIsCustom = false
+  return getDefaultNivelesConfig()
+}
+
+export function getActiveNivelesConfig() {
+  return nivelesCache ? nivelesCache : getDefaultNivelesConfig()
+}
+
 export function saveNivelesConfig(cfg) {
-  if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg))
+  nivelesCache = mergeNiveles(cfg)
+  nivelesIsCustom = true
+  import('../api/missGarabatosApi.js').then(({ mgPut, MG_KEYS }) => mgPut(MG_KEYS.niveles, nivelesCache)).catch((err) => {
+    console.error('No se pudo guardar niveles en la BD', err)
+  })
 }
 
 export function resetNivelesConfig() {
-  if (typeof localStorage === 'undefined') return
-  localStorage.removeItem(STORAGE_KEY)
+  nivelesCache = null
+  nivelesIsCustom = false
+  import('../api/missGarabatosApi.js').then(({ mgDelete, MG_KEYS }) => mgDelete(MG_KEYS.niveles)).catch((err) => {
+    console.error('No se pudo borrar niveles en la BD', err)
+  })
 }
 
 export function hasCustomNiveles() {
-  if (typeof localStorage === 'undefined') return false
-  return Boolean(localStorage.getItem(STORAGE_KEY))
+  return nivelesIsCustom
 }
 
 export function getActiveNiveles() {

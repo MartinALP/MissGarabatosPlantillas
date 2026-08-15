@@ -40,7 +40,7 @@ function IconChart() {
   )
 }
 
-export default function HubHome({ onSelect }) {
+export default function HubHome({ onSelect, onRecoverBrowser }) {
   return (
     <div className="app hub-page">
       <header className="hero hub-hero">
@@ -76,6 +76,13 @@ export default function HubHome({ onSelect }) {
           <p>Rúbrica L / E / P / RA, Excel, reportes, tablas, gráficas y alumnos en riesgo.</p>
         </button>
       </div>
+      {onRecoverBrowser && (
+        <p className="help" style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+          <button type="button" className="btn ghost" onClick={onRecoverBrowser}>
+            Recuperar ajustes de este navegador
+          </button>
+        </p>
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { generateEvidenciasPptx } from './pptx/generateEvidenciasPptx'
 import { proponerIndicadores } from './data/indicadoresCotejo'
 import { StepCampos, StepContenidos, StepPdas, scrollToTop } from './App'
 import { saveAs } from 'file-saver'
+import { mgPut, MG_KEYS } from './api/missGarabatosApi'
 import mascot from './assets/miss-garabatos.png'
 import './App.css'
 
@@ -24,20 +25,6 @@ const STEPS = [
   { id: 'adjuntos', label: 'Adjuntar', emoji: '📎' },
   { id: 'descargar', label: 'Descargar', emoji: '📽️' },
 ]
-const EVIDENCIAS_SAVE_KEY = 'mg_evidencias_borrador_v1'
-
-function loadEvidenciasSave() {
-  try {
-    const raw = localStorage.getItem(EVIDENCIAS_SAVE_KEY)
-    if (!raw) return null
-    const data = JSON.parse(raw)
-    if (!data || typeof data !== 'object') return null
-    return data
-  } catch {
-    return null
-  }
-}
-
 function firstFourWords(text) {
   return String(text || '').trim().split(/\s+/).filter(Boolean).slice(0, 4).join(' ')
 }
@@ -83,7 +70,7 @@ function slideToDraft(slide) {
   }
 }
 
-export default function EvidenciasPage({ onBack }) {
+export default function EvidenciasPage({ onBack, savedState = null }) {
   const [step, setStep] = useState(0)
   const [gradoFiltro, setGradoFiltro] = useState(0)
   const [draft, setDraft] = useState(emptyDraft)
@@ -91,12 +78,13 @@ export default function EvidenciasPage({ onBack }) {
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState('')
   const [extraIndicador, setExtraIndicador] = useState('')
+  const [hydrated, setHydrated] = useState(!savedState)
   const catalog = getActiveCampos()
   const slideNum = slides.length + 1
   const { tipo, selectedCampos, selectedContenidos, selectedPdas, pptAdjunto, indicadoresSel = [], cotejoVacio = false } = draft
 
   useEffect(() => {
-    const saved = loadEvidenciasSave()
+    const saved = savedState
     if (!saved) return
     const hasWork = (Array.isArray(saved.slides) && saved.slides.length) || saved.draft?.tipo
     if (!hasWork) return
@@ -106,7 +94,23 @@ export default function EvidenciasPage({ onBack }) {
     }
     if (typeof saved.step === 'number') setStep(Math.min(Math.max(saved.step, 0), STEPS.length - 1))
     if (typeof saved.gradoFiltro === 'number') setGradoFiltro(saved.gradoFiltro)
-  }, [])
+    setHydrated(true)
+  }, [savedState])
+
+  useEffect(() => {
+    if (!hydrated) return
+    const t = setTimeout(() => {
+      const draftSafe = { ...draft, pptAdjunto: null }
+      const slidesSafe = slides.map((s) => {
+        const { pptBlob, ...rest } = s
+        return rest
+      })
+      mgPut(MG_KEYS.evidencias, { draft: draftSafe, slides: slidesSafe, step, gradoFiltro }).catch((err) => {
+        console.error('No se pudo guardar evidencias en la BD', err)
+      })
+    }, 450)
+    return () => clearTimeout(t)
+  }, [hydrated, draft, slides, step, gradoFiltro])
 
   useEffect(() => {
     scrollToTop()
