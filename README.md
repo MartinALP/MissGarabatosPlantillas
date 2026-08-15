@@ -1,6 +1,10 @@
-# Rúbrica de Evaluación · Fase 2 Preescolar
+# Miss Garabatos · Plantillas
 
-Plataforma web (sin login ni base de datos) para armar rúbricas de evaluación a partir del **Programa Sintético Fase 2** (SEP / NEM):
+SPA en el navegador (sin backend ni base de datos) para **planeación**, **evidencias** y **rúbricas** del Programa Sintético Fase 2 (SEP / NEM).
+
+Este repo es el producto de plantillas. Otros proyectos de Miss Garabatos pueden vivir en carpetas hermanas.
+
+Flujo de evaluación:
 
 1. Elige **1 a 4 Campos** formativos  
 2. Selecciona **Contenidos** de cada campo  
@@ -22,7 +26,7 @@ Códigos de indicador según campo y grado: `LPDA1`, `SPDA2`, `EPDA3`, `HPDA1-2`
 ## Cómo correrlo
 
 ```bash
-cd c:\repos\missgarabatos\rubrica-evaluacion
+cd c:\repos\MissGarabatosPlantillas
 npm install
 npm run dev
 ```
