@@ -1834,6 +1834,60 @@ textarea {
   }
 }
 
+.adjunto-modo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 0.85rem;
+  margin: 0.9rem 0 1rem;
+}
+
+.adjunto-modo-grid .hub-card {
+  min-height: 0;
+  cursor: pointer;
+}
+
+.adjunto-modo-grid label.hub-card {
+  margin: 0;
+}
+
+.plantillas-por-campo {
+  margin-top: 0.5rem;
+}
+
+.plantilla-campo-block h3 {
+  margin: 0.85rem 0 0.45rem;
+  color: #558B2F;
+  font-size: 1.05rem;
+}
+
+.plantilla-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.plantilla-file-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  border: 2px solid #c5e1a5;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.plantilla-file-btn.selected {
+  border-color: #7cb342;
+  background: #f1f8e9;
+}
+
 .adjuntos-actions {
   display: flex;
   flex-wrap: wrap;
