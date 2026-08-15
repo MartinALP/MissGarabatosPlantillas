@@ -37,7 +37,13 @@ psql -h localhost -U postgres -d missgarabatos -f db/01_schema.sql
 psql -h localhost -U postgres -d missgarabatos -c "\dt"
 ```
 
-Debes ver `teachers` y `teacher_configs`. `\l` debe listar `cuthis` y `missgarabatos`.
+Debes ver `teachers` y `teacher_configs`. Para la tienda:
+
+```bash
+psql -h localhost -U postgres -d missgarabatos -f db/02_store.sql
+```
+
+`\dt` listará también `store_*`. `\l` debe listar `cuthis` y `missgarabatos`.
 
 ---
 
