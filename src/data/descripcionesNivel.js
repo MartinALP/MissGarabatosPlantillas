@@ -268,6 +268,62 @@ const PDA_OVERRIDES = [
       'Depende del adulto para interpretar lo que necesita o siente. Rara vez expresa sus preferencias de forma oral y evita participar en dinámicas de comunicación grupal.',
     ],
   },
+  {
+    key: 'cuenta objetos y elementos de su entorno en su lengua materna con diversos propósitos.',
+    optionLabels: [
+      'Enfoque en Principios de Conteo (Correspondencia y Cardinalidad)',
+      'Enfoque en Uso Práctico y Resolución de Problemas',
+      'Enfoque en Rango Numérico y Organización',
+    ],
+    S: [
+      'Cuenta colecciones de objetos en su entorno respetando el orden estable y la correspondencia uno a uno. Dice la cantidad total al finalizar con diversos propósitos.',
+      'Emplea el conteo de forma autónoma para resolver problemas prácticos del aula (repartir, comparar o verificar materiales), explicando cuántos elementos hay.',
+      'Organiza y cuenta colecciones variadas de su entorno de manera precisa. Mantiene el control del conteo oral adaptándose a diferentes tipos de objetos.',
+    ],
+    E: [
+      'Cuenta elementos de su entorno con apoyo de conteo oral. Asigna un número a cada objeto y logra decir cuántos hay en total en colecciones pequeñas.',
+      'Utiliza el conteo oral para responder a preguntas cotidianas del grupo. Identifica la cantidad de objetos en su entorno apoyándose en la manipulación directa.',
+      'Cuenta objetos del salón siguiendo una estrategia propia (alinear o señalar). Determina el total de elementos en su lengua materna en situaciones de juego.',
+    ],
+    P: [
+      'Muestra interés por contar elementos del aula, pero omite o repite números al señalar. Requiere apoyo para determinar la cantidad total de una colección.',
+      'Cuenta colecciones pequeñas solo cuando la docente se lo indica. Se distrae al manipular los elementos y pierde la secuencia numérica durante el ejercicio.',
+      'Cuenta los primeros elementos de una colección con precisión, pero pierde el seguimiento al aumentar la cantidad de objetos. Requiere conteo guiado.',
+    ],
+    RA: [
+      'Dice la serie numérica de forma memorística sin relacionarla con los objetos que señala. Se le dificulta realizar el conteo en actividades cotidianas.',
+      'Muestra dificultad para iniciar el conteo de objetos de su entorno. Depende del modelado constante del adulto para intentar contar colecciones.',
+      'Se le dificulta seguir la secuencia numérica oral al señalar objetos. Muestra desinterés o frustración al intentar realizar actividades de conteo.',
+    ],
+  },
+  {
+    key: 'conversa y opina sobre diferentes temas y con varias personas interlocutoras.',
+    optionLabels: [
+      'Enfoque en Fluidez Dialógica e Interacción',
+      'Enfoque en Argumentación e Intercambio de Ideas',
+      'Enfoque en Participación Abierta y Variedad de Contextos',
+    ],
+    S: [
+      'Conversa y opina con seguridad sobre diversos temas. Mantiene diálogos fluidos adaptando su lenguaje con distintos compañeros, docentes y adultos.',
+      'Argumenta sus puntos de vista con claridad sobre temas variados. Escucha con respeto la opinión de los demás y retroalimenta la conversación.',
+      'Participa activamente en asambleas y debates escolares. Muestra confianza para opinar y conversar en variados contextos e interlocutores.',
+    ],
+    E: [
+      'Expresa sus opiniones e ideas durante conversaciones grupales. Escucha y responde de manera coherente al interactuar con diferentes personas.',
+      'Comparte lo que piensa sobre situaciones del aula o cuentos. Logra intercambiar opiniones respetando los turnos para hablar con sus pares.',
+      'Se integra a conversaciones sobre temas cotidianos. Logra manifestar sus ideas de forma comprensible tanto con sus compañeros como con el personal de la escuela.',
+    ],
+    P: [
+      'Emite opiniones breves sobre temas de su interés. Le cuesta trabajo mantener una conversación fluida cuando interactúa con personas poco conocidas.',
+      'Expresa lo que le gusta o disgusta mediante frases cortas. Requiere preguntas guía del docente para ampliar sus respuestas al conversar.',
+      'Participa de forma esporádica manifestando opiniones sencillas. Tiende a conversar solo con su círculo cercano de compañeros.',
+    ],
+    RA: [
+      'Muestra timidez o dificultad para iniciar o mantener conversaciones. Evade dar su opinión en dinámicas grupales o al hablar con otros adultos.',
+      'Se le dificulta formular respuestas verbales completas ante un tema. Depende de la intervención directa del adulto para comunicar su opinión.',
+      'Presenta aislamiento o reserva al momento de dialogar. Muestra resistencia para expresar sus opiniones frente a distintas personas del entorno escolar.',
+    ],
+  },
 ]
 
 function overrideForPda(pdaTexto) {
