@@ -297,6 +297,146 @@ const PDA_OVERRIDES = [
     ],
   },
   {
+    key: 'propone, de manera colaborativa, formas de resolver situaciones cotidianas e imaginarias que involucran acciones de agregar, juntar, quitar, separar, comparar e igualar cantidades.',
+    optionLabels: [
+      'Enfoque en Resolución de Problemas y Colaboración',
+      'Enfoque en Razonamiento y Acciones Sobre Colecciones',
+      'Enfoque en Uso de Estrategias y Comunicación de Resultados',
+    ],
+    S: [
+      'Propone con iniciativa soluciones para agregar, quitar o igualar cantidades en problemas cotidianos. Trabaja en equipo y explica con claridad cómo resolvió el reto.',
+      'Identifica con facilidad acciones de comparar o igualar elementos en juegos. Aporta ideas lógicas al grupo para determinar dónde hay más, menos o la misma cantidad.',
+      'Diseña estrategias novedosas junto a sus compañeros para igualar o comparar cantidades en el aula. Comunica con seguridad el proceso seguido y el resultado final.',
+    ],
+    E: [
+      'Colabora con sus pares para resolver situaciones de juntar, separar o comparar cantidades. Usa material concreto y comparte sus ideas para encontrar el resultado.',
+      'Resuelve problemas imaginarios y cotidianos aplicando acciones de juntar y quitar. Escucha las propuestas de sus compañeros y valida el resultado mediante conteo.',
+      'Acepta las ideas del grupo para resolver retos cotidianos de cantidades. Aplica acciones de agregar o quitar apoyándose en la manipulación de objetos del entorno.',
+    ],
+    P: [
+      'Participa en la resolución de problemas numéricos cuando trabaja en equipo, pero requiere apoyo directo del adulto para entender si debe agregar o quitar objetos.',
+      'Comprende problemas sencillos de agregar o quitar objetos, pero se le dificulta expresar su estrategia o colaborar activamente en la propuesta final del equipo.',
+      'Aplica acciones sobre las colecciones por ensayo y error. Requiere preguntas guía de la docente para identificar si la solución planteada fue la correcta.',
+    ],
+    RA: [
+      'Le cuesta trabajo integrarse al trabajo colaborativo para resolver problemas de cantidades. Depende del modelado constante para manipular materiales concretos.',
+      'Presenta dificultad para comprender las acciones de agregar o quitar elementos. Muestra desinterés o frustración durante las dinámicas de resolución en equipo.',
+      'Muestra dificultad para manipular objetos con una intención numérica. Le cuesta trabajo seguir las dinámicas grupales que involucran transformar cantidades.',
+    ],
+  },
+  {
+    key: 'comparte con sus pares información personal acerca de sus gustos, familia, emociones, identidad, entre otros.',
+    optionLabels: [
+      'Enfoque en Socialización e Identidad',
+      'Enfoque en Emociones y Convivencia',
+      'Enfoque en Diálogo Abierto y Autoestima',
+    ],
+    S: [
+      'Comparte con fluidez y seguridad aspectos de su identidad, gustos y familia con sus compañeros. Escucha con atención y respeta la información personal de sus pares.',
+      'Reconoce y expresa con claridad sus emociones y preferencias ante sus compañeros. Promueve un clima de confianza al intercambiar vivencias familiares.',
+      'Explica con orgullo y detalle aspectos de su familia, identidad y preferencias. Muestra apertura para dialogar sobre lo que le hace único frente a otros.',
+    ],
+    E: [
+      'Expresa datos sobre sus gustos, emociones y familia al interactuar con otros niños. Muestra confianza al hablar de su historia personal en el aula.',
+      'Comunica cómo se siente y qué le gusta en dinámicas grupales. Logra establecer vínculos con otros niños al compartir intereses e ideas personales.',
+      'Participa de manera voluntaria compartiendo información de su vida cotidiana y familia. Reconoce similitudes y diferencias entre sus gustos y los de sus pares.',
+    ],
+    P: [
+      'Menciona aspectos sobre sus gustos o familia solo cuando se le cuestiona directamente. Requiere apoyo de preguntas guía para conversar con sus pares.',
+      'Identifica sus gustos personales, pero se le dificulta expresar vivencias familiares ante el grupo. Participa de forma breve durante las asambleas.',
+      'Relata breves aspectos de sus gustos o juegos preferidos. Le cuesta mantener una conversación continua sobre su historia personal sin el uso de imágenes.',
+    ],
+    RA: [
+      'Le cuesta trabajo compartir información sobre sí mismo o su familia. Muestra timidez o reserva al participar en dinámicas de intercambio personal.',
+      'Presenta dificultad para nombrar sus emociones o gustos con sus pares. Muestra desinterés por escuchar o compartir detalles de su entorno familiar.',
+      'Depende del acompañamiento directo del adulto para verbalizar datos sencillos de su identidad o familia. Evade hablar sobre sus emociones con el grupo.',
+    ],
+  },
+  {
+    key: 'se expresa y participa con libertad y respeto en diversas situaciones y contextos, favoreciendo una cultura de paz y la convivencia pacífica en un marco de inclusión y diversidad.',
+    optionLabels: [
+      'Enfoque en Participación e Inclusión',
+      'Enfoque en Resolución Pacífica y Cultura de Paz',
+      'Enfoque en Respeto a la Diversidad y Expresión Libre',
+    ],
+    S: [
+      'Expresa sus opiniones con libertad y respeto en diversas situaciones. Promueve la integración de todos sus compañeros favoreciendo un ambiente inclusivo y pacífico.',
+      'Utiliza el diálogo constante para resolver diferencias dentro del aula. Muestra empatía y promueve acuerdos de convivencia que respetan la diversidad del grupo.',
+      'Manifiesta sus ideas con total seguridad y escucha de forma atenta y respetuosa las propuestas del grupo, valorando las diferencias individuales.',
+    ],
+    E: [
+      'Participa en actividades grupales compartiendo sus ideas de forma respetuosa. Incluye a sus pares en juegos y dinámicas cotidianas del salón sin hacer distinciones.',
+      'Expresa sus opiniones respetando los turnos de participación. Acude al diálogo para solucionar pequeños conflictos y acepta las diferencias de los demás.',
+      'Expresa lo que piensa de manera clara y amable en asambleas. Participa en contextos diversos respetando los acuerdos establecidos para la convivencia.',
+    ],
+    P: [
+      'Expresa sus puntos de vista con apoyo docente. Muestra apertura para integrarse en juegos colaborativos, aunque requiere guía para respetar normas de inclusión.',
+      'Muestra comprensión básica sobre el respeto a sus pares, pero se le dificulta mantener el diálogo pacífico cuando surge un conflicto en el juego.',
+      'Logra manifestar sus desacuerdos de forma respetuosa con mediación de la docente. Participa en dinámicas grupales de forma esporádica.',
+    ],
+    RA: [
+      'Se le dificulta participar en dinámicas grupales o expresar sus ideas. Presenta conductas que obstaculizan la convivencia pacífica con sus compañeros.',
+      'Depende totalmente de la intervención del adulto para solucionar desacuerdos. Muestra resistencia para compartir e integrarse con distintos compañeros.',
+      'Le cuesta expresar sus ideas en público y respetar la participación de los demás. Evade participar en actividades colectivas e inclusivas.',
+    ],
+  },
+  {
+    key: 'intercambia experiencias y vivencias con sus pares y otras personas, acerca de las diferentes formas de actuar, expresar, nombrar y controlar las emociones.',
+    optionLabels: [
+      'Enfoque en Autorregulación y Diálogo',
+      'Enfoque en Expresión y Empatía',
+      'Enfoque en Convivencia y Reflexión',
+    ],
+    S: [
+      'Intercambia con fluidez vivencias personales sobre cómo nombra, expresa y autorregula sus emociones. Escucha a otros y propone estrategias efectivas de autocontrol.',
+      'Identifica y valora las distintas formas en que sus pares expresan sus estados de ánimo. Explica con claridad sus propias estrategias de autorregulación emocional.',
+      'Promueve el intercambio de ideas sobre el manejo de emociones en el aula. Propone formas pacíficas de actuar ante el enojo o la frustración junto a sus pares.',
+    ],
+    E: [
+      'Comparte con sus compañeros cómo se siente y qué hace para calmarse. Escucha con atención la manera en que otros expresan y nombran sus emociones.',
+      'Dialoga en grupo sobre situaciones que le provocan diversas emociones. Reconoce y respeta las diferentes reacciones emocionales de sus compañeros.',
+      'Participa de forma activa conversando sobre sus experiencias emocionales. Aplica técnicas sencillas aprendidas en clase para regular sus reacciones.',
+    ],
+    P: [
+      'Menciona cómo se siente o actúa solo cuando la docente le pregunta directamente. Le cuesta identificar estrategias para controlar sus emociones durante un conflicto.',
+      'Identifica emociones básicas (alegría, tristeza, enojo), pero se le dificulta expresar verbalmente qué acciones realiza para autorregularse o calmarse.',
+      'Comparte experiencias sobre sus emociones de manera breve. Requiere acompañamiento para reflexionar sobre la forma adecuada de actuar al enojarse o frustrarse.',
+    ],
+    RA: [
+      'Presenta dificultad para nombrar sus emociones o hablar sobre sus vivencias. Se le dificulta mantener el autocontrol y evita participar en diálogos emocionales.',
+      'Rara vez expresa lo que siente o cómo reacciona ante diversas vivencias. Depende de la intervención del adulto para identificar o regular sus emociones.',
+      'Muestra resistencia o desinterés al hablar de sus vivencias emocionales. Se le dificulta reconocer cómo controlar sus impulsos en situaciones cotidianas.',
+    ],
+  },
+  {
+    key: 'dice lo que le molesta o incomoda para evitar reaccionar con gritos o agresión; dialoga y respeta las reglas para una mejor convivencia.',
+    optionLabels: [
+      'Enfoque en Autorregulación y Comunicación Directa',
+      'Enfoque en Resolución Pacífica de Conflictos',
+      'Enfoque en Acuerdos y Convivencia Armónica',
+    ],
+    S: [
+      'Expresa con claridad y calma aquello que le incomoda, evitando gritos o agresiones. Dialoga de forma autónoma para resolver desacuerdos y respeta las reglas.',
+      'Utiliza la palabra como herramienta principal ante situaciones que le molestan. Promueve el diálogo pacífico con sus pares y cumple siempre las reglas.',
+      'Identifica a tiempo sus emociones de molestia y las comunica con respeto. Respeta de manera constante las reglas y propone ideas para la buena convivencia.',
+    ],
+    E: [
+      'Verbaliza lo que le molesta antes de reaccionar de forma impulsiva. Utiliza el diálogo para llegar a acuerdos y sigue las normas establecidas en el aula.',
+      'Dice de forma comprensible cuando algo no le gusta sin agredir a otros. Escucha las razones de sus compañeros y acepta los acuerdos del grupo.',
+      'Manifiesta su incomodidad mediante frases sencillas evitando conductas agresivas. Acata las normas del aula y participa de forma tranquila en las dinámicas.',
+    ],
+    P: [
+      'Menciona su molestia con apoyo docente cuando se siente frustrado. Requiere recordatorios constantes para no gritar y seguir las reglas de convivencia.',
+      'Intenta expresar su incomodidad verbalmente, pero suele elevar la voz o frustrarse. Depende del acompañamiento adulto para llegar a un diálogo pacífico.',
+      'Expresa su enojo o incomodidad únicamente cuando la docente interviene. Muestra avances para respetar las reglas, aunque a veces actúa con impulsividad.',
+    ],
+    RA: [
+      'Reacciona con llanto, gritos o agresión ante situaciones de incomodidad. Se le dificulta usar las palabras para dialogar y le cuesta respetar las reglas.',
+      'Muestra dificultad para controlar sus reacciones impulsivas al enojarse. Evade el diálogo con sus pares y se le complica acatar las normas cotidianas.',
+      'Presenta constantes conductas de grito o empuje al sentirse incomodado. Se le dificulta integrarse al diálogo y requiere mediación para seguir las reglas.',
+    ],
+  },
+  {
     key: 'conversa y opina sobre diferentes temas y con varias personas interlocutoras.',
     optionLabels: [
       'Enfoque en Fluidez Dialógica e Interacción',
@@ -322,6 +462,90 @@ const PDA_OVERRIDES = [
       'Muestra timidez o dificultad para iniciar o mantener conversaciones. Evade dar su opinión en dinámicas grupales o al hablar con otros adultos.',
       'Se le dificulta formular respuestas verbales completas ante un tema. Depende de la intervención directa del adulto para comunicar su opinión.',
       'Presenta aislamiento o reserva al momento de dialogar. Muestra resistencia para expresar sus opiniones frente a distintas personas del entorno escolar.',
+    ],
+  },
+  {
+    key: 'mantiene el control y equilibrio de los distintos segmentos corporales tanto en situaciones estáticas (sostenerse en un pie, hacer una figura con el cuerpo, entre otras) como en movimientos sin desplazamiento (girar, brincar, etcétera).',
+    optionLabels: [
+      'Enfoque en Postura y Control Corporal',
+      'Enfoque en Coordinación Motriz y Fluidez',
+      'Enfoque en Esquema Corporal y Dominio Espacial',
+    ],
+    S: [
+      'Mantiene el equilibrio corporal con total estabilidad en posturas estáticas y movimientos en su lugar. Ajusta sus segmentos corporales con precisión y seguridad.',
+      'Coordina sus segmentos corporales con fluidez al realizar retos de equilibrio estático y dinámico sin desplazamiento. Muestra gran dominio de su centro de gravedad.',
+      'Explora y sostiene con facilidad diversas figuras corporales estáticas. Salta y gira en su lugar con excelente firmeza y control de cada segmento de su cuerpo.',
+    ],
+    E: [
+      'Logra sostenerse en un pie o hacer figuras con su cuerpo de forma estable. Realiza giros y brincos en su lugar manteniendo el control de su cuerpo.',
+      'Ejecuta giros, brincos y posturas corporales coordinadas. Domina el control de sus brazos y piernas al mantenerse en posiciones estáticas por un tiempo adecuado.',
+      'Mantiene el control corporal al hacer posturas indicadas y brincos sencillos. Reconoce cómo ajustar su cuerpo para no caerse en un solo pie.',
+    ],
+    P: [
+      'Mantiene el equilibrio por breves momentos en posturas estáticas. Requiere apoyo visual o apoyo docente para no tambalearse al girar o brincar en su lugar.',
+      'Muestra avances en el control de su cuerpo, pero pierde la postura al brincar o girar. Requiere recordatorios para utilizar sus brazos como apoyo de equilibrio.',
+      'Logra realizar las posiciones estáticas de forma rápida sin sostener la postura. Presenta constante balanceo al intentar girar o brincar sin desplazarse.',
+    ],
+    RA: [
+      'Presenta dificultad para sostener el equilibrio en un solo pie o hacer posturas. Pierde el control corporal al brincar o realizar giros sin desplazamiento.',
+      'Le cuesta trabajo controlar sus movimientos sin desplazamiento. Se tambalea con facilidad al intentar posturas estáticas o saltos sencillos en su lugar.',
+      'Depende del soporte físico del adulto para sostenerse en un solo pie. Evade o muestra inseguridad al realizar movimientos que impliquen equilibrio en su lugar.',
+    ],
+  },
+  {
+    key: 'explora los espacios físicos de su casa, escuela y comunidad para identificar las zonas de seguridad que le permitan mantener su integridad en caso de situaciones de riesgo.',
+    optionLabels: [
+      'Enfoque en Zonas de Seguridad y Prevención',
+      'Enfoque en Reconocimiento de Riesgos y Entorno',
+      'Enfoque en Autocuidado y Conciencia Espacial',
+    ],
+    S: [
+      'Explora autónomamente su entorno identificando zonas de seguridad y situaciones de riesgo. Reconoce conductas de autocuidado para no lastimarse ni lastimar a otros.',
+      'Reconoce con precisión lugares seguros y conductas de riesgo en la casa, escuela y comunidad. Expresa formas de protegerse y cuidar a sus pares ante el peligro.',
+      'Muestra alto sentido de autocuidado al ubicarse en zonas seguras. Promueve comportamientos preventivos en el grupo para mantener la integridad de todos.',
+    ],
+    E: [
+      'Identifica zonas de seguridad en la escuela y su casa. Reconoce acciones o comportamientos que representan un riesgo para su integridad y la de sus compañeros.',
+      'Explora los espacios de la escuela identificando áreas seguras. Menciona acciones peligrosas y comprende cómo evitar accidentes en sus actividades cotidianas.',
+      'Sigue las indicaciones para ubicarse en zonas de seguridad ante emergencias. Identifica comportamientos que pueden lastimar a otros en su entorno escolar.',
+    ],
+    P: [
+      'Identifica zonas de seguridad básicas con ayuda del docente. Le cuesta prever situaciones o comportamientos en los que puede lastimarse durante el juego.',
+      'Ubica áreas seguras solo mediante preguntas guía. Muestra comprensión parcial sobre acciones que pueden causar accidentes a él o a sus compañeros.',
+      'Reconoce algunas zonas seguras en la escuela, pero suele realizar acciones de riesgo durante el juego. Requiere recordatorios sobre normas de seguridad.',
+    ],
+    RA: [
+      'Presenta dificultad para reconocer lugares seguros en su entorno. Muestra conductas de riesgo de forma recurrente y le cuesta identificar los peligros.',
+      'Le cuesta trabajo identificar zonas de riesgo en los espacios escolares. Depende de la supervisión constante del adulto para evitar lastimarse.',
+      'Muestra desinterés por ubicar zonas de seguridad. Le cuesta asociar ciertos comportamientos o acciones impulsivas con el peligro de un accidente.',
+    ],
+  },
+  {
+    key: 'identifica acciones, situaciones y comportamientos en los que puede lastimarse o lastimar a las demás personas.',
+    optionLabels: [
+      'Enfoque en Prevención y Autocuidado',
+      'Enfoque en Empatía y Cuidado Mutuo',
+      'Enfoque en Conciencia de Riesgo y Consecuencias',
+    ],
+    S: [
+      'Reconoce con precisión acciones y situaciones de riesgo en el aula y patio. Propone medidas preventivas para cuidar su integridad y la de sus compañeros.',
+      'Explica con claridad cómo ciertas acciones impulsivas pueden lastimar a sus pares. Promueve de forma activa hábitos seguros de convivencia y juego.',
+      'Anticipa las consecuencias de diversos comportamientos peligrosos. Muestra constante autocontrol para desenvolverse de manera segura en distintos espacios.',
+    ],
+    E: [
+      'Identifica comportamientos que pueden causarle daño o lastimar a otros. Modifica sus acciones al reflexionar sobre los riesgos presentes en el entorno.',
+      'Reconoce situaciones en las que un compañero o él mismo pueden salir lastimados. Acepta y pone en práctica las indicaciones de seguridad del grupo.',
+      'Menciona comportamientos específicos que generan accidentes en la escuela. Elige realizar actividades seguras para mantener su bienestar y el de otros.',
+    ],
+    P: [
+      'Distingue acciones peligrosas cotidianas cuando la docente se las señala. Requiere apoyo para prever las consecuencias de sus comportamientos en el juego.',
+      'Identifica riesgos evidentes de lastimarse a sí mismo, pero se le dificulta reconocer cuando sus acciones pueden perjudicar a las demás personas.',
+      'Comprende de forma parcial las consecuencias de sus actos. Requiere recordatorios constantes sobre qué conductas ponen en peligro al grupo.',
+    ],
+    RA: [
+      'Le cuesta trabajo identificar situaciones de peligro en su entorno. Presenta conductas impulsivas o de riesgo de forma constante durante las actividades.',
+      'Muestra desinterés por prever accidentes en sus juegos. Depende del acompañamiento directo del adulto para evitar lastimarse o dañar a otros.',
+      'Presenta dificultad para relacionar un comportamiento peligroso con un posible accidente. Se expone a situaciones de riesgo sin medir consecuencias.',
     ],
   },
 ]
