@@ -73,7 +73,7 @@ export default function HubHome({ onSelect }) {
             <IconChart />
             <h2>Evaluación</h2>
           </div>
-          <p>Rúbrica L / E / P / RA, Excel, reportes, tablas, gráficas y alumnos en riesgo.</p>
+          <p>Rúbrica S / E / P / RA, Excel, reportes, tablas, gráficas y alumnos en riesgo.</p>
         </button>
       </div>
     </div>

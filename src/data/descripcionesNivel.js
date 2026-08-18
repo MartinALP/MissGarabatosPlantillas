@@ -150,7 +150,7 @@ const LONG_FILL = [
 const PDA_OVERRIDES = [
   {
     key: 'emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales que aprende en su comunidad, para expresar necesidades, ideas, emociones y gustos que reflejan su forma de interpretar y actuar en el mundo.',
-    L: [
+    S: [
       'Emplea con autonomía palabras, gestos, señas, imágenes, sonidos y movimientos corporales de su comunidad para expresar necesidades, ideas, emociones y gustos, e interpretar y actuar mejor en su mundo.',
       'Utiliza con gran seguridad palabras, gestos, señas, imágenes, sonidos y movimientos corporales aprendidos en su comunidad para comunicar necesidades, ideas, emociones y gustos en situaciones diversas.',
       'Comunica de forma autónoma necesidades, ideas, emociones y gustos mediante palabras, gestos, señas, imágenes, sonidos y movimientos corporales de su comunidad, actuando con seguridad en su entorno ya.',
@@ -173,7 +173,7 @@ const PDA_OVERRIDES = [
   },
   {
     key: 'reconoce que cuando juega y socializa con sus pares, se expresan desde sus posibilidades, vivencias y cultura.',
-    L: [
+    S: [
       'Reconoce con autonomía que al jugar y socializar con sus pares, cada persona se expresa desde sus posibilidades, vivencias y cultura; escucha con respeto y valora las distintas formas de comunicación.',
       'Identifica durante el juego que sus pares comunican ideas, emociones y experiencias según sus posibilidades, vivencias y cultura; participa con respeto, interés y apertura activa ante las diferencias.',
       'Reconoce que sus compañeras y compañeros se expresan de diversas maneras durante el juego, de acuerdo con sus posibilidades, vivencias y cultura; convive, escucha y responde con respeto y con empatía.',
@@ -196,7 +196,7 @@ const PDA_OVERRIDES = [
   },
   {
     key: 'espera su turno al participar en una conversación con sus compañeras o compañeros.',
-    L: [
+    S: [
       'Espera su turno con autonomía al conversar con sus compañeras y compañeros; escucha con atención, respeta las intervenciones y participa en el momento oportuno con seguridad, interés y cortesía mutua.',
       'Participa en conversaciones, respetando su turno y el de sus pares; mantiene la escucha, espera con paciencia y expresa sus ideas cuando corresponde, favoreciendo un diálogo muy ordenado y respetuoso.',
       'Regula su participación al conversar: escucha a sus compañeras y compañeros, espera su turno sin recordatorios y toma la palabra de manera pertinente, respetuosa y muy segura en distintas situaciones.',
@@ -219,7 +219,7 @@ const PDA_OVERRIDES = [
   },
   {
     key: 'manifiesta oralmente y de manera clara necesidades, emociones, gustos, preferencias e ideas, que construye en la convivencia diaria, y se da a entender apoyándose de distintos lenguajes.',
-    L: [
+    S: [
       'Manifiesta con claridad necesidades, emociones, gustos, preferencias e ideas construidas en la convivencia diaria; utiliza distintos lenguajes con autonomía, seguridad y detalle para darse a entender.',
       'Comunica oralmente necesidades, emociones, gustos, preferencias e ideas relacionadas con su convivencia cotidiana; se apoya con autonomía en gestos, imágenes y otros lenguajes para hacerse comprender.',
       'Expresa de manera clara y espontánea lo que necesita, siente, prefiere y piensa a partir de sus experiencias diarias; combina el lenguaje oral con más recursos, y logra darse a entender con seguridad.',
@@ -240,13 +240,80 @@ const PDA_OVERRIDES = [
       'Aún presenta dificultad para organizar y comunicar sus necesidades, emociones, gustos e ideas; conviene ofrecer mediación continua, recursos visuales y modelos breves que faciliten su expresión oral.',
     ],
   },
+  {
+    key: 'de manera oral, expresa ideas completas sobre necesidades, vivencias, emociones, gustos, preferencias y saberes a distintas personas, combinando los lenguajes.',
+    optionLabels: [
+      'Enfoque Integral (Proceso de Comunicación)',
+      'Enfoque en Convivencia y Diálogo',
+      'Enfoque en Variedad Lingüística y Contexto',
+    ],
+    S: [
+      'Expresa con claridad e ideas completas sus emociones, vivencias y gustos a diferentes personas. Combina gestos y palabras de forma fluida y espontánea para hacerse entender.',
+      'Comparte con seguridad sus saberes y vivencias en asamblea. Organiza sus ideas de manera lógica, utilizando lenguaje verbal y corporal para integrarse de forma activa al grupo.',
+      'Explica con detalle sus emociones, gustos y saberes adaptando su lenguaje a diferentes interlocutores. Combina recursos gráficos y gestuales para enriquecer sus explicaciones.',
+    ],
+    E: [
+      'Comunica sus necesidades, emociones y gustos usando frases claras frente a sus compañeros y docentes. Apoya su lenguaje oral con gestos o imágenes al compartir sus ideas.',
+      'Participa en conversaciones expresando sus preferencias y vivencias con oraciones sencillas pero comprensibles. Logra transmitir sus necesidades a distintos adultos del preescolar.',
+      'Logra transmitir sus necesidades e ideas completas en situaciones cotidianas. Usa el lenguaje oral y gestual de forma adecuada para relacionarse con compañeros y docentes.',
+    ],
+    P: [
+      'Expresa necesidades y gustos mediante palabras aisladas o frases cortas. Requiere preguntas guía de la docente para estructurar ideas completas sobre lo que siente o piensa.',
+      'Comparte sus vivencias personales solo cuando se le cuestiona directamente. Su discurso oral es breve y confía principalmente en el lenguaje corporal para hacerse comprender.',
+      'Menciona sus gustos y emociones de forma esporádica. Le cuesta trabajo estructurar relatos completos sobre sus vivencias sin el apoyo de imágenes o del adulto.',
+    ],
+    RA: [
+      'Presenta dificultad para comunicar sus emociones o vivencias de forma oral. Recurre únicamente a señas o llanto, necesitando acompañamiento constante para expresarse.',
+      'Muestra timidez o aislamiento al intentar comunicar sus saberes o gustos. Se le dificulta usar el lenguaje verbal para manifestar necesidades básicas dentro del aula.',
+      'Depende del adulto para interpretar lo que necesita o siente. Rara vez expresa sus preferencias de forma oral y evita participar en dinámicas de comunicación grupal.',
+    ],
+  },
 ]
 
 function overrideForPda(pdaTexto) {
   const key = normalize(pdaTexto).toLowerCase()
   const found = PDA_OVERRIDES.find((item) => key.includes(item.key) || item.key.includes(key))
   if (!found) return null
-  return { L: found.L, E: found.E, P: found.P, RA: found.RA }
+  return {
+    S: found.S,
+    E: found.E,
+    P: found.P,
+    RA: found.RA,
+    optionLabels: found.optionLabels || null,
+  }
+}
+
+export function getOptionLabelsForPda(pdaTexto) {
+  const fixed = overrideForPda(pdaTexto)
+  return fixed?.optionLabels || null
+}
+
+/** Opciones finales: guardadas en descState, o generadas por PDA. */
+export function getOpcionesParaPda(pdaTexto, descState) {
+  const base = buildOpcionesParaPda(pdaTexto)
+  const saved = descState?.opciones
+  if (!saved || typeof saved !== 'object') return base
+  const codes = ['S', 'E', 'P', 'RA']
+  const out = { ...base }
+  for (const code of codes) {
+    const list = saved[code]
+    if (Array.isArray(list) && list.length >= 3) {
+      out[code] = list.slice(0, 3).map((t) => String(t || '').trim())
+    }
+  }
+  return out
+}
+
+export function mergeDescripcionState(pdaTexto, saved) {
+  const base = defaultDescripcionState(pdaTexto)
+  if (!saved || typeof saved !== 'object') return base
+  const opciones = getOpcionesParaPda(pdaTexto, saved)
+  const codes = ['S', 'E', 'P', 'RA']
+  const slots = {}
+  for (const code of codes) {
+    slots[code] = { ...base[code], ...(saved[code] || {}) }
+  }
+  return { opciones, ...slots }
 }
 
 function getExt(nivel) {
@@ -313,7 +380,7 @@ function finish(text, extensions) {
 
 /**
  * Apertura según nivel (antes del punto): no afirma logro en P/RA.
- * L: verbo conjugado del PDA · E/P/RA: infinitivo con matiz de avance/ensayo/dificultad.
+ * S: verbo conjugado del PDA · E/P/RA: infinitivo con matiz de avance/ensayo/dificultad.
  */
 function buildOpening(raw, nivel, variant, restBudget) {
   const { verb, rest } = splitVerbRest(raw)
@@ -354,12 +421,12 @@ function craftLevel(raw, nivel, variant, after, extensions) {
  */
 export function buildOpcionesParaPda(pdaTexto) {
   const fixed = overrideForPda(pdaTexto)
-  if (fixed) return { L: [...fixed.L], E: [...fixed.E], P: [...fixed.P], RA: [...fixed.RA] }
+  if (fixed) return { S: [...fixed.S], E: [...fixed.E], P: [...fixed.P], RA: [...fixed.RA] }
 
   const raw = nucleoRaw(pdaTexto)
   const cfg = getActiveNivelesConfig()
   const cierres = cfg.cierres || {}
-  const codes = ['L', 'E', 'P', 'RA']
+  const codes = ['S', 'E', 'P', 'RA']
   const out = {}
   for (const nivel of codes) {
     const afters = cierres[nivel] || []
@@ -380,7 +447,7 @@ export function defaultDescripcionState(pdaTexto) {
   const opciones = buildOpcionesParaPda(pdaTexto)
   return {
     opciones,
-    L: { optionIndex: 0, useCustom: false, custom: '' },
+    S: { optionIndex: 0, useCustom: false, custom: '' },
     E: { optionIndex: 0, useCustom: false, custom: '' },
     P: { optionIndex: 0, useCustom: false, custom: '' },
     RA: { optionIndex: 0, useCustom: false, custom: '' },
@@ -389,11 +456,12 @@ export function defaultDescripcionState(pdaTexto) {
 
 export function resolveTextoNivel(descState, nivelCode) {
   if (!descState) return ''
-  const slot = descState[nivelCode]
+  const code = nivelCode === 'L' ? 'S' : nivelCode
+  const slot = descState[code] || (code === 'S' ? descState.L : null)
   if (!slot) return ''
   if (slot.useCustom && slot.custom?.trim()) {
-    return finish(slot.custom.trim(), getExt(nivelCode))
+    return finish(slot.custom.trim(), getExt(code))
   }
-  const opts = descState.opciones?.[nivelCode] || []
+  const opts = descState.opciones?.[code] || descState.opciones?.[nivelCode] || []
   return opts[slot.optionIndex] || opts[0] || ''
 }

@@ -3,10 +3,17 @@ import {
   getActiveNivelesConfig,
   getDefaultNivelesConfig,
   saveNivelesConfig,
+  savePdaDescripcionAjuste,
   resetNivelesConfig,
   hasCustomNiveles,
 } from './data/nivelesStore'
-import { buildOpcionesParaPda, defaultDescripcionState } from './data/descripcionesNivel'
+import {
+  buildOpcionesParaPda,
+  defaultDescripcionState,
+  getOpcionesParaPda,
+  getOptionLabelsForPda,
+  mergeDescripcionState,
+} from './data/descripcionesNivel'
 import {
   getActiveCampos,
   getCampo,
@@ -20,16 +27,18 @@ const SAMPLE_PDA =
   'Emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales para expresar necesidades, ideas y emociones.'
 
 /**
- * Panel para ajustar niveles L / E / P / RA y el desempeño por PDA.
+ * Panel para ajustar niveles S / E / P / RA y el desempeño por PDA.
  */
 export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
   const [cfg, setCfg] = useState(() => getActiveNivelesConfig())
-  const [code, setCode] = useState('L')
+  const [code, setCode] = useState('S')
   const [msg, setMsg] = useState('')
   const [campoId, setCampoId] = useState('')
   const [contenidoId, setContenidoId] = useState('')
   const [grado, setGrado] = useState(0)
   const [focusKey, setFocusKey] = useState('')
+  const [editTarget, setEditTarget] = useState(null)
+  const [editDraft, setEditDraft] = useState(['', '', ''])
   const catalog = getActiveCampos()
 
   const nivel = useMemo(
@@ -52,7 +61,7 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
         const { campoId: c, contenidoId: co, pdaId } = parsePdaKey(key)
         const pda = getPda(c, co, pdaId)
         if (!pda) continue
-        next[key] = defaultDescripcionState(pda.texto || '')
+        next[key] = mergeDescripcionState(pda.texto || '', next[key])
         changed = true
       }
       return changed ? { ...prev, pdaAjustes: next } : prev
@@ -112,7 +121,7 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
         delete cur[key]
         return { ...prev, pdaAjustes: cur }
       }
-      cur[key] = defaultDescripcionState(pdaTexto || '')
+      cur[key] = mergeDescripcionState(pdaTexto || '', cur[key])
       return { ...prev, pdaAjustes: cur }
     })
     setFocusKey(exists ? (focusKey === key ? '' : focusKey) : key)
@@ -129,10 +138,44 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
   function updatePdaSlot(key, nivelCode, patch) {
     setCfg((prev) => {
       const cur = { ...(prev.pdaAjustes || {}) }
-      const st = cur[key] || defaultDescripcionState(previewPdaTexto)
+      const st = cur[key] || mergeDescripcionState(previewPdaTexto, cur[key])
+      if (patch?.opciones) {
+        const merged = { ...st, opciones: { ...st.opciones, ...patch.opciones } }
+        cur[key] = merged
+        savePdaDescripcionAjuste(key, {
+          opciones: merged.opciones,
+          S: merged.S,
+          E: merged.E,
+          P: merged.P,
+          RA: merged.RA,
+        })
+        return { ...prev, pdaAjustes: cur }
+      }
       cur[key] = { ...st, [nivelCode]: { ...st[nivelCode], ...patch } }
       return { ...prev, pdaAjustes: cur }
     })
+  }
+
+  function startEditOpciones(code, opciones) {
+    setEditTarget(code)
+    setEditDraft([0, 1, 2].map((i) => opciones[i] || ''))
+  }
+
+  function cancelEditOpciones() {
+    setEditTarget(null)
+    setEditDraft(['', '', ''])
+  }
+
+  function saveEditOpciones() {
+    if (!focusKey || !editTarget) return
+    const trimmed = editDraft.map((t) => String(t || '').trim())
+    const st = cfg.pdaAjustes?.[focusKey] || mergeDescripcionState(previewPdaTexto)
+    const merged = { ...st, opciones: { ...st.opciones, [editTarget]: trimmed } }
+    updatePdaSlot(focusKey, null, { opciones: { [editTarget]: trimmed } })
+    setPreviewOpts(getOpcionesParaPda(previewPdaTexto, merged))
+    cancelEditOpciones()
+    setMsg('Opciones guardadas en la base de datos.')
+    setTimeout(() => setMsg(''), 3200)
   }
 
   function save() {
@@ -195,7 +238,8 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
   const aperturas = cfg.aperturas[code] || ['', '', '']
   const cierres = cfg.cierres[code] || ['', '', '']
   const focusDesc = focusKey ? cfg.pdaAjustes?.[focusKey] : null
-  const focusOpts = focusKey ? buildOpcionesParaPda(previewPdaTexto) : null
+  const focusOpts = focusKey ? getOpcionesParaPda(previewPdaTexto, focusDesc) : null
+  const enfoqueLabels = focusKey ? getOptionLabelsForPda(previewPdaTexto) : null
   const focusParsed = focusKey ? parsePdaKey(focusKey) : null
   const focusPda = focusParsed
     ? getPda(focusParsed.campoId, focusParsed.contenidoId, focusParsed.pdaId)
@@ -205,9 +249,9 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
     <div className="catalog-adjuster niveles-adjuster">
       <div className="catalog-adjuster-head">
         <div>
-          <h2>Ajustar niveles de desempeño · L / E / P / RA</h2>
+          <h2>Ajustar niveles de desempeño · S / E / P / RA</h2>
           <p className="muted">
-            Elige los PDA del alumno y marca el nivel (L / E / P / RA) según su desempeño.
+            Elige los PDA del alumno y marca el nivel (S / E / P / RA) según su desempeño.
             También puedes editar cómo se redactan todos los niveles (aperturas y cierres).
             {hasCustomNiveles() ? ' · Usando versión personalizada.' : ' · Usando versión oficial.'}
           </p>
@@ -318,11 +362,48 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
             {cfg.niveles.map((n) => {
               const slot = focusDesc[n.code] || { optionIndex: 0, useCustom: false, custom: '' }
               const opciones = focusOpts?.[n.code] || []
+              const editing = editTarget === n.code
               return (
-                <div key={n.code} className="nivel-box" style={{ borderColor: n.color }}>
+                <div key={n.code} className={`nivel-box ${editing ? 'editing' : ''}`} style={{ borderColor: n.color }}>
                   <div className="nivel-head" style={{ background: n.bg, color: n.fg }}>
                     {n.code} · {n.label}
+                    {!editing && (
+                      <button
+                        type="button"
+                        className="btn ghost tiny nivel-edit-btn"
+                        onClick={() => startEditOpciones(n.code, opciones)}
+                      >
+                        Editar
+                      </button>
+                    )}
                   </div>
+                  {editing ? (
+                    <div className="opciones-edit">
+                      {[0, 1, 2].map((i) => (
+                        <label key={i}>
+                          <em>{enfoqueLabels?.[i] || `Opción ${i + 1}`}</em>
+                          <textarea
+                            rows={3}
+                            value={editDraft[i] || ''}
+                            onChange={(e) => {
+                              const next = [...editDraft]
+                              next[i] = e.target.value
+                              setEditDraft(next)
+                            }}
+                          />
+                        </label>
+                      ))}
+                      <div className="nivel-box-actions">
+                        <button type="button" className="btn primary tiny" onClick={saveEditOpciones}>
+                          Guardar
+                        </button>
+                        <button type="button" className="btn ghost tiny" onClick={cancelEditOpciones}>
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
                   <div className="opciones">
                     {!slot.hideOpciones && opciones.map((txt, i) => (
                       <label key={i} className={!slot.useCustom && slot.optionIndex === i ? 'picked' : ''}>
@@ -332,7 +413,7 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
                           checked={!slot.useCustom && slot.optionIndex === i}
                           onChange={() => updatePdaSlot(focusKey, n.code, { optionIndex: i, useCustom: false })}
                         />
-                        <span><em>Opción {i + 1}</em> {txt}</span>
+                        <span><em>{enfoqueLabels?.[i] || `Opción ${i + 1}`}</em> {txt}</span>
                       </label>
                     ))}
                     <label className={slot.useCustom || slot.hideOpciones ? 'picked custom' : 'custom'}>
@@ -358,12 +439,14 @@ export default function NivelesAdjuster({ onClose, onSaved, pdaKeys = [] }) {
                   </div>
                   <div className="nivel-box-actions">
                     <button type="button" className="btn primary tiny" onClick={save}>
-                      Guardar
+                      Guardar selección
                     </button>
                     <button type="button" className="btn ghost tiny" onClick={() => quitarOpciones(focusKey, n.code)}>
                       Quitar
                     </button>
                   </div>
+                    </>
+                  )}
                 </div>
               )
             })}

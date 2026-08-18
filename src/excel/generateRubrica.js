@@ -8,7 +8,7 @@ import {
   codigoPda,
   getActiveNiveles,
 } from '../data/catalogoFase2'
-import { resolveTextoNivel, buildOpcionesParaPda } from '../data/descripcionesNivel'
+import { resolveTextoNivel, buildOpcionesParaPda, getOpcionesParaPda } from '../data/descripcionesNivel'
 import { injectVbaProject, loadVbaProjectBin } from './injectMacro'
 import { injectNivelCharts } from './injectNivelCharts'
 
@@ -88,7 +88,7 @@ function buildItems(pdaKeys, descripciones) {
       usedCodes[shortCode] = 1
     }
     const desc = descripciones[key]
-    const opciones = desc?.opciones || buildOpcionesParaPda(pda?.texto || '')
+    const opciones = getOpcionesParaPda(pda?.texto || '', desc)
     return {
       key,
       campo,
@@ -97,13 +97,13 @@ function buildItems(pdaKeys, descripciones) {
       shortCode,
       opciones,
       opcionIdx: {
-        L: Math.min(3, Math.max(1, (desc?.L?.optionIndex ?? 0) + 1)),
+        S: Math.min(3, Math.max(1, (desc?.S?.optionIndex ?? desc?.L?.optionIndex ?? 0) + 1)),
         E: Math.min(3, Math.max(1, (desc?.E?.optionIndex ?? 0) + 1)),
         P: Math.min(3, Math.max(1, (desc?.P?.optionIndex ?? 0) + 1)),
         RA: Math.min(3, Math.max(1, (desc?.RA?.optionIndex ?? 0) + 1)),
       },
       textos: {
-        L: resolveTextoNivel(desc, 'L'),
+        S: resolveTextoNivel(desc, 'S'),
         E: resolveTextoNivel(desc, 'E'),
         P: resolveTextoNivel(desc, 'P'),
         RA: resolveTextoNivel(desc, 'RA'),
@@ -448,7 +448,7 @@ function buildEvaluacionSheet(wb, items) {
   }
 
   ws.mergeCells(1, 1, 1, lastCol)
-  ws.getCell('A1').value = 'EVALUACIÓN DIAGNÓSTICA · Selecciona L / E / P / RA en cada celda'
+  ws.getCell('A1').value = 'EVALUACIÓN DIAGNÓSTICA · Selecciona S / E / P / RA en cada celda'
   ws.getCell('A1').font = { bold: true, size: 12, color: { argb: 'FF2980B9' }, name: 'Century Gothic' }
   ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' }
   ws.getRow(1).height = 18
@@ -518,12 +518,12 @@ function buildEvaluacionSheet(wb, items) {
   const dv = {
     type: 'list',
     allowBlank: true,
-    formulae: ['"L,E,P,RA"'],
+    formulae: ['"S,E,P,RA"'],
     showErrorMessage: true,
     errorTitle: 'Nivel inválido',
-    error: 'Usa solo L, E, P o RA',
+    error: 'Usa solo S, E, P o RA',
     promptTitle: 'Nivel',
-    prompt: 'Elige L, E, P o RA',
+    prompt: 'Elige S, E, P o RA',
     showInputMessage: true,
   }
 
@@ -753,18 +753,18 @@ function buildReporteSheet(wb, items) {
     ws.getCell(r, 2).note = notaPda(it)
 
     ws.getCell(r, 3).value = {
-      formula: `IF(B${r}="","",IF(B${r}="L",Catalogo_Descripciones!E${catRow},IF(B${r}="E",Catalogo_Descripciones!F${catRow},IF(B${r}="P",Catalogo_Descripciones!G${catRow},IF(B${r}="RA",Catalogo_Descripciones!H${catRow},"")))))`,
+      formula: `IF(B${r}="","",IF(OR(B${r}="S",B${r}="L"),Catalogo_Descripciones!E${catRow},IF(B${r}="E",Catalogo_Descripciones!F${catRow},IF(B${r}="P",Catalogo_Descripciones!G${catRow},IF(B${r}="RA",Catalogo_Descripciones!H${catRow},"")))))`,
     }
     styleCell(ws.getCell(r, 3))
     ws.mergeCells(r, 3, r, 6)
     ws.getCell(r, 3).alignment = { wrapText: true, vertical: 'top', horizontal: 'left' }
     ws.getCell(r, 3).font = { name: 'Century Gothic', size: 10 }
     const textosNivel = [
-      ...(it.opciones?.L || []),
+      ...(it.opciones?.S || it.opciones?.L || []),
       ...(it.opciones?.E || []),
       ...(it.opciones?.P || []),
       ...(it.opciones?.RA || []),
-      it.textos?.L,
+      it.textos?.S,
       it.textos?.E,
       it.textos?.P,
       it.textos?.RA,
@@ -1307,7 +1307,7 @@ function buildCatalogoSheet(wb, items, meta, textosEditables = false) {
   // Títulos de columnas E–H (y I–L si se puede modificar)
   ws.mergeCells(textosEditables ? 'E1:L1' : 'E1:H1')
   ws.getCell('E1').value = textosEditables
-    ? 'Elige 1, 2 o 3 en Opción L/E/P/RA (lista desplegable). El texto de la izquierda se actualiza y el reporte lo usa.'
+    ? 'Elige 1, 2 o 3 en Opción S/E/P/RA (lista desplegable). El texto de la izquierda se actualiza y el reporte lo usa.'
     : 'Textos fijos (Sin modificar). El reporte usa estos textos.'
   ws.getCell('E1').font = { bold: true, size: 10, color: { argb: 'FF6C3483' }, name: 'Century Gothic' }
   ws.getCell('E1').alignment = { vertical: 'middle', wrapText: true }
@@ -1317,13 +1317,13 @@ function buildCatalogoSheet(wb, items, meta, textosEditables = false) {
     'Contenido',
     'Código',
     'PDA (grado)',
-    'Txt L (Logrado)',
+    'Txt S (Sobresaliente)',
     'Txt E (Esperado)',
     'Txt P (Proceso)',
     'Txt RA (Requiere apoyo)',
   ]
   if (textosEditables) {
-    headers.push('Opción L', 'Opción E', 'Opción P', 'Opción RA')
+    headers.push('Opción S', 'Opción E', 'Opción P', 'Opción RA')
   }
   headers.forEach((h, i) => {
     styleHeader(ws.getCell(4, i + 1), '8e44ad')
@@ -1343,7 +1343,7 @@ function buildCatalogoSheet(wb, items, meta, textosEditables = false) {
   }
 
   const bank = [
-    { code: 'L', txtCol: 5, optCol: 9, bankStart: 13 },
+    { code: 'S', txtCol: 5, optCol: 9, bankStart: 13 },
     { code: 'E', txtCol: 6, optCol: 10, bankStart: 16 },
     { code: 'P', txtCol: 7, optCol: 11, bankStart: 19 },
     { code: 'RA', txtCol: 8, optCol: 12, bankStart: 22 },
@@ -1357,7 +1357,7 @@ function buildCatalogoSheet(wb, items, meta, textosEditables = false) {
       ws.getColumn(c).width = 12
       ws.getColumn(c).hidden = true
     }
-    ;['L1', 'L2', 'L3', 'E1', 'E2', 'E3', 'P1', 'P2', 'P3', 'RA1', 'RA2', 'RA3'].forEach((h, i) => {
+    ;['S1', 'S2', 'S3', 'E1', 'E2', 'E3', 'P1', 'P2', 'P3', 'RA1', 'RA2', 'RA3'].forEach((h, i) => {
       ws.getCell(4, 13 + i).value = h
     })
   }

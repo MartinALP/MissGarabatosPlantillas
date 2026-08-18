@@ -57,7 +57,7 @@ export async function generateReportesPdfFromExcel(file) {
       codigo,
       campo: cellText(wsCat.getCell(r, 1)),
       textos: {
-        L: cellText(wsCat.getCell(r, 5)),
+        S: cellText(wsCat.getCell(r, 5)),
         E: cellText(wsCat.getCell(r, 6)),
         P: cellText(wsCat.getCell(r, 7)),
         RA: cellText(wsCat.getCell(r, 8)),
@@ -118,7 +118,8 @@ export async function generateReportesPdfFromExcel(file) {
     y += 6
 
     const body = indicadores.map((ind) => {
-      const nivel = cellText(wsEval.getCell(alu.evalRow, ind.evalCol)).toUpperCase()
+      const raw = cellText(wsEval.getCell(alu.evalRow, ind.evalCol)).toUpperCase()
+      const nivel = raw === 'L' ? 'S' : raw
       const texto = ind.textos[nivel] || (nivel ? '' : '(pendiente de evaluar)')
       return [ind.campo, nivel || '', texto]
     })

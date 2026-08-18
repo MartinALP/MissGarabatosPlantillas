@@ -1,10 +1,10 @@
 /**
- * Niveles de desempeño (L / E / P / RA) editables + plantillas de texto.
+ * Niveles de desempeño (S / E / P / RA) editables + plantillas de texto.
  * Persistencia en la base missgarabatos vía API.
  */
 
 export const NIVELES_DEFAULT = [
-  { code: 'L', label: 'Logrado', short: 'Nivel 4', color: '#2ecc71', bg: '#A9DFBF', fg: '#1C2833' },
+  { code: 'S', label: 'Sobresaliente', short: 'Nivel 4', color: '#2ecc71', bg: '#A9DFBF', fg: '#1C2833' },
   { code: 'E', label: 'Esperado', short: 'Nivel 3', color: '#82e0aa', bg: '#D5F5E3', fg: '#1C2833' },
   { code: 'P', label: 'Proceso', short: 'Nivel 2', color: '#f1c40f', bg: '#F9E79F', fg: '#1C2833' },
   { code: 'RA', label: 'Requiere apoyo', short: 'Nivel 1', color: '#e74c3c', bg: '#F5B7B1', fg: '#1C2833' },
@@ -12,7 +12,7 @@ export const NIVELES_DEFAULT = [
 
 /** Prefijos de apertura. Placeholders: {verb} conjugado, {inf} infinitivo, {rest} resto del PDA. */
 export const APERTURAS_DEFAULT = {
-  L: ['{verb} {rest}', 'Logra {inf} {rest}', 'Demuestra al {inf} {rest}'],
+  S: ['{verb} {rest}', 'Logra {inf} {rest}', 'Demuestra al {inf} {rest}'],
   E: ['Avanza al {inf} {rest}', 'En lo esperado, suele {inf} {rest}', 'Con guía breve logra {inf} {rest}'],
   P: ['Intenta {inf} {rest}', 'Todavía ensaya {inf} {rest}', 'Con mediación practica {inf} {rest}'],
   RA: ['Aún le cuesta {inf} {rest}', 'Se le dificulta {inf} {rest}', 'Requiere apoyo para {inf} {rest}'],
@@ -20,7 +20,7 @@ export const APERTURAS_DEFAULT = {
 
 /** Cierres pedagógicos (después del primer punto). Tres variantes por nivel. */
 export const CIERRES_DEFAULT = {
-  L: [
+  S: [
     'Lo demuestra con autonomía y de forma sostenida en el juego, las rutinas y situaciones nuevas; actúa con seguridad y puede orientar a sus pares.',
     'Se observa con soltura y sin depender del adulto: participa, muestra lo que sabe y lo transfiere a momentos espontáneos del aula preescolar.',
     'Lo hace con constancia, iniciativa y disfrute; consolida el aprendizaje y lo comparte con sus pares de forma natural.',
@@ -43,7 +43,7 @@ export const CIERRES_DEFAULT = {
 }
 
 export const EXT_DEFAULT = {
-  L: [
+  S: [
     'Se documenta como logro consolidado del periodo.',
     'La evidencia se recoge en juego y rutinas diarias.',
     'Transfiere lo aprendido a momentos espontáneos.',
@@ -72,6 +72,60 @@ function clone(x) {
   return JSON.parse(JSON.stringify(x))
 }
 
+/** Migra claves L → S en mapas por nivel (aperturas, cierres, extensiones, opciones). */
+function migrateNivelKeyMap(obj) {
+  if (!obj || typeof obj !== 'object') return obj
+  if (Object.prototype.hasOwnProperty.call(obj, 'L') && !Object.prototype.hasOwnProperty.call(obj, 'S')) {
+    const { L, ...rest } = obj
+    return { S: L, ...rest }
+  }
+  return obj
+}
+
+function migratePdaAjustes(pdaAjustes) {
+  if (!pdaAjustes || typeof pdaAjustes !== 'object') return {}
+  const out = {}
+  for (const [key, st] of Object.entries(pdaAjustes)) {
+    if (!st || typeof st !== 'object') {
+      out[key] = st
+      continue
+    }
+    const migrated = { ...st }
+    if (migrated.opciones) migrated.opciones = migrateNivelKeyMap(migrated.opciones)
+    if (Object.prototype.hasOwnProperty.call(migrated, 'L') && !Object.prototype.hasOwnProperty.call(migrated, 'S')) {
+      const { L, ...rest } = migrated
+      out[key] = { ...rest, S: L }
+    } else {
+      out[key] = migrated
+    }
+  }
+  return out
+}
+
+function migrateNivelesArray(niveles) {
+  if (!Array.isArray(niveles)) return niveles
+  return niveles.map((n) => {
+    if (n?.code !== 'L') return n
+    return {
+      ...n,
+      code: 'S',
+      label: n.label === 'Logrado' ? 'Sobresaliente' : n.label,
+    }
+  })
+}
+
+function migrateNivelesConfig(cfg) {
+  if (!cfg || typeof cfg !== 'object') return cfg
+  return {
+    ...cfg,
+    niveles: migrateNivelesArray(cfg.niveles),
+    aperturas: migrateNivelKeyMap(cfg.aperturas),
+    cierres: migrateNivelKeyMap(cfg.cierres),
+    extensiones: migrateNivelKeyMap(cfg.extensiones),
+    pdaAjustes: migratePdaAjustes(cfg.pdaAjustes),
+  }
+}
+
 export function getDefaultNivelesConfig() {
   return {
     niveles: clone(NIVELES_DEFAULT),
@@ -85,13 +139,13 @@ export function getDefaultNivelesConfig() {
 function mergeNiveles(parsed) {
   const def = getDefaultNivelesConfig()
   if (!parsed || typeof parsed !== 'object') return def
-  return {
+  return migrateNivelesConfig({
     niveles: Array.isArray(parsed.niveles) && parsed.niveles.length ? parsed.niveles : def.niveles,
     aperturas: { ...def.aperturas, ...(parsed.aperturas || {}) },
     cierres: { ...def.cierres, ...(parsed.cierres || {}) },
     extensiones: { ...def.extensiones, ...(parsed.extensiones || {}) },
     pdaAjustes: parsed.pdaAjustes && typeof parsed.pdaAjustes === 'object' ? parsed.pdaAjustes : {},
-  }
+  })
 }
 
 export function hydrateNivelesFromApi(payload) {
@@ -131,4 +185,19 @@ export function hasCustomNiveles() {
 
 export function getActiveNiveles() {
   return getActiveNivelesConfig().niveles
+}
+
+/** Guarda ajustes de descripción por PDA (opciones editadas, selección, texto custom). */
+export function savePdaDescripcionAjuste(pdaKey, patch) {
+  const cfg = getActiveNivelesConfig()
+  const prev = cfg.pdaAjustes?.[pdaKey] || {}
+  const next = { ...prev, ...patch }
+  if (patch?.opciones && typeof patch.opciones === 'object') {
+    next.opciones = { ...(prev.opciones || {}), ...patch.opciones }
+  }
+  saveNivelesConfig({
+    ...cfg,
+    pdaAjustes: { ...(cfg.pdaAjustes || {}), [pdaKey]: next },
+  })
+  return next
 }

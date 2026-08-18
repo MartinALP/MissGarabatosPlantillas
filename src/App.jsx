@@ -12,8 +12,8 @@ import {
   hasCustomNiveles,
   getActiveNiveles,
 } from './data/catalogoFase2'
-import { defaultDescripcionState, resolveTextoNivel, buildOpcionesParaPda } from './data/descripcionesNivel'
-import { getActiveNivelesConfig } from './data/nivelesStore'
+import { resolveTextoNivel, getOpcionesParaPda, getOptionLabelsForPda, mergeDescripcionState } from './data/descripcionesNivel'
+import { getActiveNivelesConfig, savePdaDescripcionAjuste } from './data/nivelesStore'
 import mascot from './assets/miss-garabatos.png'
 import { generateRubricaExcel, buildItems } from './excel/generateRubrica'
 import CatalogAdjuster from './CatalogAdjuster'
@@ -133,7 +133,7 @@ export default function App({ onBack }) {
         // keep if deselecting later cleaned? keep for re-select
         return prev
       }
-      return { ...prev, [key]: defaultDescripcionState(pdaTexto) }
+      return { ...prev, [key]: mergeDescripcionState(pdaTexto, getActiveNivelesConfig().pdaAjustes?.[key]) }
     })
   }
 
@@ -149,7 +149,7 @@ export default function App({ onBack }) {
       const next = { ...prev }
       pdas.forEach((p) => {
         const key = makePdaKey(campoId, contenidoId, p.id)
-        if (!next[key]) next[key] = defaultDescripcionState(p.texto)
+        if (!next[key]) next[key] = mergeDescripcionState(p.texto, getActiveNivelesConfig().pdaAjustes?.[key])
       })
       return next
     })
@@ -164,14 +164,27 @@ export default function App({ onBack }) {
     setDescripciones((prev) => {
       const { campoId, contenidoId, pdaId } = parsePdaKey(key)
       const pda = getPda(campoId, contenidoId, pdaId)
-      const base = prev[key] || defaultDescripcionState(pda?.texto || '')
-      return {
-        ...prev,
-        [key]: {
+      const fromSaved = getActiveNivelesConfig().pdaAjustes?.[key]
+      const base = prev[key] || mergeDescripcionState(pda?.texto || '', fromSaved)
+      if (patch?.opciones) {
+        const merged = {
           ...base,
-          [nivel]: { ...base[nivel], ...patch },
-        },
+          opciones: { ...base.opciones, ...patch.opciones },
+        }
+        savePdaDescripcionAjuste(key, {
+          opciones: merged.opciones,
+          S: merged.S,
+          E: merged.E,
+          P: merged.P,
+          RA: merged.RA,
+        })
+        return { ...prev, [key]: merged }
       }
+      const next = {
+        ...base,
+        [nivel]: { ...base[nivel], ...patch },
+      }
+      return { ...prev, [key]: next }
     })
   }
 
@@ -285,10 +298,10 @@ export default function App({ onBack }) {
       const { campoId, contenidoId, pdaId } = parsePdaKey(key)
       const pda = getPda(campoId, contenidoId, pdaId)
       const fromNiveles = getActiveNivelesConfig().pdaAjustes?.[key]
-      const base = descs[key] || fromNiveles || defaultDescripcionState(pda?.texto || '')
+      const base = descs[key] || mergeDescripcionState(pda?.texto || '', fromNiveles)
       descs[key] = {
         ...base,
-        opciones: buildOpcionesParaPda(pda?.texto || ''),
+        opciones: getOpcionesParaPda(pda?.texto || '', base),
       }
     })
     return descs
@@ -331,7 +344,7 @@ export default function App({ onBack }) {
             {hasCustomCatalog() ? ' · personalizado' : ''}
           </button>
           <button type="button" className="btn secondary catalog-open-btn" onClick={() => setShowNiveles(true)}>
-            Ajustar niveles (Logrado / Esperado / Proceso / RA)
+            Ajustar niveles (Sobresaliente / Esperado / Proceso / RA)
             {hasCustomNiveles() ? ' · personalizado' : ''}
           </button>
         </div>
@@ -743,6 +756,26 @@ export function StepPdas({
 
 function StepDescripciones({ pdaKeys, descripciones, onUpdate, niveles }) {
   const nivelList = niveles?.length ? niveles : getActiveNiveles()
+  const [editTarget, setEditTarget] = useState(null)
+  const [editDraft, setEditDraft] = useState(['', '', ''])
+
+  function startEdit(key, code, opciones, labels) {
+    setEditTarget({ key, code })
+    setEditDraft([0, 1, 2].map((i) => opciones[i] || ''))
+  }
+
+  function cancelEdit() {
+    setEditTarget(null)
+    setEditDraft(['', '', ''])
+  }
+
+  function saveEdit(pdaTexto) {
+    if (!editTarget) return
+    const trimmed = editDraft.map((t) => String(t || '').trim())
+    onUpdate(editTarget.key, null, { opciones: { [editTarget.code]: trimmed } })
+    cancelEdit()
+  }
+
   if (pdaKeys.length === 0) {
     return <p className="help">Aún no hay PDA seleccionados.</p>
   }
@@ -750,8 +783,9 @@ function StepDescripciones({ pdaKeys, descripciones, onUpdate, niveles }) {
     <section>
       <h2>4. Configura descripciones por nivel</h2>
       <p className="help">
-        Por cada PDA y cada nivel (L / E / P / RA) hay <strong>3 opciones</strong> (190–200 caracteres):
-        lenguaje de rúbrica preescolar a partir del PDA. Elige una o escribe la tuya.
+        Por cada PDA y cada nivel (S / E / P / RA) hay <strong>3 opciones</strong>.
+        Elige una, pulsa <strong>Editar</strong> para ajustar los textos (se guardan en la base de datos)
+        o escribe la tuya.
       </p>
       <div className="stack">
         {pdaKeys.map((key) => {
@@ -760,8 +794,10 @@ function StepDescripciones({ pdaKeys, descripciones, onUpdate, niveles }) {
           const cont = getContenido(campoId, contenidoId)
           const pda = getPda(campoId, contenidoId, pdaId)
           if (!campo || !cont || !pda) return null
-          const desc = descripciones[key] || defaultDescripcionState(pda?.texto || '')
-          const opcionesPda = buildOpcionesParaPda(pda?.texto || '')
+          const fromSaved = getActiveNivelesConfig().pdaAjustes?.[key]
+          const desc = descripciones[key] || mergeDescripcionState(pda?.texto || '', fromSaved)
+          const opcionesPda = getOpcionesParaPda(pda?.texto || '', desc)
+          const enfoqueLabels = getOptionLabelsForPda(pda?.texto || '')
           return (
             <article
               key={key}
@@ -785,48 +821,89 @@ function StepDescripciones({ pdaKeys, descripciones, onUpdate, niveles }) {
                 {nivelList.map((n) => {
                   const slot = desc[n.code]
                   const opciones = opcionesPda[n.code] || []
+                  const editing = editTarget?.key === key && editTarget?.code === n.code
                   return (
-                    <div key={n.code} className="nivel-box" style={{ borderColor: n.color }}>
+                    <div key={n.code} className={`nivel-box ${editing ? 'editing' : ''}`} style={{ borderColor: n.color }}>
                       <div className="nivel-head" style={{ background: n.bg, color: n.fg }}>
                         {n.code} · {n.label}
+                        {!editing && (
+                          <button
+                            type="button"
+                            className="btn ghost tiny nivel-edit-btn"
+                            onClick={() => startEdit(key, n.code, opciones, enfoqueLabels)}
+                          >
+                            Editar
+                          </button>
+                        )}
                       </div>
-                      <div className="opciones">
-                        {opciones.map((txt, i) => (
-                          <label key={i} className={(!slot.useCustom && slot.optionIndex === i) ? 'picked' : ''}>
-                            <input
-                              type="radio"
-                              name={`${key}-${n.code}`}
-                              checked={!slot.useCustom && slot.optionIndex === i}
-                              onChange={() => onUpdate(key, n.code, { optionIndex: i, useCustom: false })}
-                            />
-                            <span><em>Opción {i + 1}</em> {txt}</span>
-                          </label>
-                        ))}
-                        <label className={slot.useCustom ? 'picked custom' : 'custom'}>
-                          <input
-                            type="radio"
-                            name={`${key}-${n.code}`}
-                            checked={!!slot.useCustom}
-                            onChange={() => onUpdate(key, n.code, { useCustom: true })}
-                          />
-                          <span>
-                            <em>Escribir la mía</em>
-                            <textarea
-                              rows={3}
-                              value={slot.custom}
-                              placeholder="Tu descripción para este nivel…"
-                              onChange={(e) =>
-                                onUpdate(key, n.code, { custom: e.target.value, useCustom: true })
-                              }
-                              onFocus={() => onUpdate(key, n.code, { useCustom: true })}
-                            />
-                          </span>
-                        </label>
-                      </div>
-                      <div className="preview-txt">
-                        <strong>Quedará en el Excel:</strong>
-                        <p>{resolveTextoNivel(desc, n.code)}</p>
-                      </div>
+                      {editing ? (
+                        <div className="opciones-edit">
+                          {[0, 1, 2].map((i) => (
+                            <label key={i}>
+                              <em>{enfoqueLabels?.[i] || `Opción ${i + 1}`}</em>
+                              <textarea
+                                rows={3}
+                                value={editDraft[i] || ''}
+                                onChange={(e) => {
+                                  const next = [...editDraft]
+                                  next[i] = e.target.value
+                                  setEditDraft(next)
+                                }}
+                              />
+                            </label>
+                          ))}
+                          <div className="nivel-box-actions">
+                            <button type="button" className="btn primary tiny" onClick={() => saveEdit(pda.texto)}>
+                              Guardar
+                            </button>
+                            <button type="button" className="btn ghost tiny" onClick={cancelEdit}>
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="opciones">
+                            {opciones.map((txt, i) => (
+                              <label key={i} className={(!slot.useCustom && slot.optionIndex === i) ? 'picked' : ''}>
+                                <input
+                                  type="radio"
+                                  name={`${key}-${n.code}`}
+                                  checked={!slot.useCustom && slot.optionIndex === i}
+                                  onChange={() => onUpdate(key, n.code, { optionIndex: i, useCustom: false })}
+                                />
+                                <span>
+                                  <em>{enfoqueLabels?.[i] || `Opción ${i + 1}`}</em> {txt}
+                                </span>
+                              </label>
+                            ))}
+                            <label className={slot.useCustom ? 'picked custom' : 'custom'}>
+                              <input
+                                type="radio"
+                                name={`${key}-${n.code}`}
+                                checked={!!slot.useCustom}
+                                onChange={() => onUpdate(key, n.code, { useCustom: true })}
+                              />
+                              <span>
+                                <em>Escribir la mía</em>
+                                <textarea
+                                  rows={3}
+                                  value={slot.custom}
+                                  placeholder="Tu descripción para este nivel…"
+                                  onChange={(e) =>
+                                    onUpdate(key, n.code, { custom: e.target.value, useCustom: true })
+                                  }
+                                  onFocus={() => onUpdate(key, n.code, { useCustom: true })}
+                                />
+                              </span>
+                            </label>
+                          </div>
+                          <div className="preview-txt">
+                            <strong>Quedará en el Excel:</strong>
+                            <p>{resolveTextoNivel({ ...desc, opciones: opcionesPda }, n.code)}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )
                 })}
@@ -887,7 +964,7 @@ function StepGenerar({
 
       <ol className="flow-steps">
         <li>Descarga el Excel (.xlsm) con Esc / Docente / Grupo prellenados (habilita macros al abrirlo).</li>
-        <li>Completa la hoja <strong>Alumnos</strong> y marca L/E/P/RA en <strong>Evaluacion</strong>.</li>
+        <li>Completa la hoja <strong>Alumnos</strong> y marca S/E/P/RA en <strong>Evaluacion</strong>.</li>
         <li>
           En <strong>Tablas y Graficas Grupal</strong> verás conteos y una gráfica por cada campo formativo que elegiste; se actualizan solos.
         </li>
