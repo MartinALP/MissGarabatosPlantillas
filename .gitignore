@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Imágenes generadas localmente (Miss Garabatos / IA) — no versionar
+src/assets/*.png
+!src/assets/miss-garabatos.png
+src/assets/*.jpg
+src/assets/*.jpeg
+src/assets/*.webp
